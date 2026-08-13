@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this methodology, please cite the paper and software."
+title: "Evidence-Driven Generative Development: Closed-Loop Synthesis with Independent Testing and Adversarial Differential Gates"
+type: article
+authors:
+  - family-names: Lee
+    given-names: Allen
+date-released: 2026-08-13
+license: CC-BY-4.0
+repository-code: "https://github.com/allenyllee/monkeyskill-methodology-paper"
+url: "https://github.com/allenyllee/monkeyskill-methodology-paper"
+keywords:
+  - generative software development
+  - large language models
+  - program synthesis
+  - software testing
+  - prompt injection
+  - agent safety
