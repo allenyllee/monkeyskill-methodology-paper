@@ -1,0 +1,30 @@
+TestSpec       := { schemaVersion: 1, tests: Test[1..40] }
+Test           := BehaviorTest | PolicyTest
+
+BehaviorTest   := {
+  id, kind: "behavior", criterion, mode,
+  fixture, blockers, steps, assertions
+}
+
+PolicyTest     := {
+  id, kind: "policy", criterion,
+  capability, expected: "denied"
+}
+
+Fixture        := { nodes: Node[1..30], rules: Rule[0..40] }
+Node           := { id, tag, parent, text, attributes, styles, rect? }
+Blocker        := { id, target, event, registration, effect, when? }
+Step           := one allowlisted action over fixture IDs
+Assertion      := one allowlisted observable predicate
+
+Selected actions:
+  dispatch-event, drag-select-text, paste-text, copy-shortcut,
+  click-control, click-page, append-node, set-style, wait
+
+Selected assertions:
+  event-default-prevented, selection-collapsed, hit-test,
+  computed-style, active-element, value, visible
+
+Never allowed:
+  JavaScript, HTML, arbitrary selectors, URLs, network requests,
+  executable expressions, or free-form assertion code

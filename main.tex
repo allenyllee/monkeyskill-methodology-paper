@@ -9,6 +9,7 @@
 \usepackage{array}
 \usepackage{enumitem}
 \usepackage{xspace}
+\usepackage{listings}
 \usepackage{xcolor}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,fit,shapes.geometric}
@@ -26,6 +27,31 @@
   urlcolor=builderblue,
   pdftitle={Evidence-Driven Generative Development},
   pdfauthor={Ya-Lun Li}
+}
+
+\lstdefinelanguage{json}{
+  basicstyle=\ttfamily\footnotesize,
+  string=[s]{\"}{\"},
+  stringstyle=\color{testergreen},
+  comment=[l]{//},
+  commentstyle=\color{gategray},
+  morecomment=[s]{/*}{*/}
+}
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  breakatwhitespace=false,
+  columns=fullflexible,
+  frame=single,
+  framerule=0.3pt,
+  rulecolor=\color{gategray},
+  xleftmargin=1.5em,
+  xrightmargin=0.5em,
+  framexleftmargin=0.8em,
+  aboveskip=0.8em,
+  belowskip=0.8em,
+  showstringspaces=false,
+  keepspaces=true
 }
 
 \newcommand{\method}{\textsc{EDGD}\xspace}
@@ -95,6 +121,10 @@ Generated source is treated as a derivative. The durable record consists of:
   \item[Runner] A trusted interpreter that constructs fixtures, applies actions, observes allowed state, and enforces capability policy.
   \item[Evidence] Candidate hashes, test outcomes, browser observations, screenshots, and preserved failure reproductions.
 \end{description}
+
+Appendix~\ref{app:package} shows a concrete package manifest and a representative
+human-readable contract excerpt. Appendix~\ref{app:testspec} shows the same bounded
+\testspec DSL used by public and independent suites.
 
 This split allows multiple implementations to satisfy one contract while keeping validation replayable. It also makes a safety boundary explicit: a behavior that the DSL and Runner cannot enforce is \emph{unverifiable}, not silently safe.
 
@@ -212,6 +242,9 @@ surface variants before insertion positions. Diversity comes from semantic and s
 
 Builder and Tester use the same \testspec{} DSL format, avoiding the misleading impression that public and independent suites are different languages. The distinction is authorship and visibility. A \testspec{} can declare fixtures, permitted actions, checkpoints, and assertions, but cannot contain JavaScript, arbitrary selectors, URLs, network requests, or executable expressions.
 
+A complete behavior-plus-policy example appears in Appendix~\ref{app:testspec}, and
+Appendix~\ref{app:grammar} summarizes the grammar and representative allowlists.
+
 The trusted Runner interprets this grammar inside an isolated environment and records observable state. Candidate scanning rejects forbidden capabilities and remote content before execution. Capability-denial tests examine the candidate rather than accepting its declarations. Installation remains a separate approval step.
 
 This design follows classic security principles: least privilege, complete mediation, and defense in depth are more reliable than trusting a model's intent \citep{saltzer1975protection,zhang2025securityprinciples}. The DSL is not a universal verifier. Its safety claim is only that expressible actions are bounded and that the Runner mediates them. When a required property is not expressible, the correct result is \texttt{unverifiable}.
@@ -263,6 +296,9 @@ Intermediate repair is positive evidence about the loop, not a reason to discard
 \section{Reference Case Study}
 
 We developed the method while building a browser capability that restores context menus, text selection, copy/cut, and native paste behavior on pages that deliberately interfere with those interactions. The Demo grew to cover event cancellation, property handlers, persistent selection removal, invisible selection rendering, transparent overlays, disabled hit testing, keyboard-copy blocking, and paste rollback.
+
+The corresponding manifest, contract excerpt, and an executable declarative test are
+reproduced in Appendices~\ref{app:package}--\ref{app:grammar}.
 
 The case exposed gaps that neither candidate self-tests nor independent DSL tests alone established. For example, a DOM range could exist while the selection remained visually transparent; only a post-drag screenshot established the rendered result. Likewise, paste rollback required waiting beyond the page's delayed handler and inspecting the final input value. These observations became capability-specific criteria and validated constraints, while the global process retained only behavior-agnostic lessons: preserve native platform semantics in the Runner, attach visual claims to pixels, and classify scope before changing shared prompts.
 
@@ -321,6 +357,64 @@ Evidence-driven generative development changes the durable unit of software from
 
 The paper source, BibTeX database, and reproducible build instructions are available at
 \url{https://github.com/allenyllee/monkeyskill-methodology-paper}. The reference implementation and operational documentation are available at \url{https://github.com/allenyllee/monkeyskill}.
+
+\appendix
+
+\section{Example MSkill Package}
+\label{app:package}
+
+An MSkill package separates declarative metadata from its human-readable behavioral
+contract. Listing~\ref{lst:manifest} is a reduced, schema-valid manifest derived from
+the Restore Right Click capability. Localization metadata is omitted only to keep the
+listing compact. The manifest grants DOM, event, and style capabilities, explicitly
+denies network and other sensitive capabilities, names the modes Builder must return,
+and links the contract and Demo.
+
+\lstinputlisting[
+  language=json,
+  caption={Schema-valid MSkill manifest example.},
+  label={lst:manifest}
+]{appendix/restore-right-click.skill.json}
+
+Listing~\ref{lst:contract} excerpts the corresponding MSkill. Criteria are stable
+identifiers consumed by both TestSpec authors. The validated implementation constraint
+is capability-specific repair knowledge; it is not part of the global Builder prompt.
+
+\lstinputlisting[
+  caption={Human-readable MSkill excerpt.},
+  label={lst:contract}
+]{appendix/restore-right-click.SKILL.md}
+
+\section{Example TestSpec DSL Document}
+\label{app:testspec}
+
+Listing~\ref{lst:testspec} is a complete, valid TestSpec for the two criteria retained
+in the reduced contract excerpt. The behavior test
+constructs a local fixture, registers a modeled page blocker, dispatches a right-button
+context-menu event, and asserts an observable event outcome. It neither names nor
+requires a candidate implementation. The policy test separately requires that the
+Runner deny the manifest's forbidden network capability.
+
+\lstinputlisting[
+  language=json,
+  caption={Behavior and policy tests in the shared TestSpec DSL.},
+  label={lst:testspec}
+]{appendix/example.testspec.json}
+
+\section{TestSpec Grammar and Capability Boundary}
+\label{app:grammar}
+
+Listing~\ref{lst:grammar} summarizes the implemented top-level grammar and a
+representative subset of action and assertion allowlists. The implementation additionally
+validates identifier syntax, collection bounds, fixture tags, attributes, style values,
+event initialization, and criterion coverage. Fields outside the schema are rejected.
+Thus the language can describe adversarial page conditions and observable outcomes but
+cannot smuggle executable test code into the trusted Runner.
+
+\lstinputlisting[
+  caption={Compact TestSpec grammar and representative allowlists.},
+  label={lst:grammar}
+]{appendix/testspec-grammar.txt}
 
 \bibliographystyle{plainnat}
 \bibliography{references}

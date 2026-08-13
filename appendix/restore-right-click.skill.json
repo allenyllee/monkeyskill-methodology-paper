@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "restore-right-click",
+  "name": "Restore right click & copy",
+  "version": "1.2.5",
+  "description": "Restores native interactions blocked by sites.",
+  "capabilities": ["dom", "events", "styles"],
+  "forbiddenCapabilities": [
+    "network",
+    "cookies",
+    "history",
+    "downloads"
+  ],
+  "modes": ["standard", "absolute"],
+  "entrypoint": "SKILL.md",
+  "demo": "demo/index.html"
+}

@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "tests": [
+    {
+      "id": "context-menu-listener",
+      "kind": "behavior",
+      "criterion": "context-menu",
+      "mode": "standard",
+      "fixture": {
+        "nodes": [
+          {
+            "id": "target",
+            "tag": "div",
+            "parent": null,
+            "text": "target",
+            "attributes": {},
+            "styles": {}
+          }
+        ],
+        "rules": []
+      },
+      "blockers": [
+        {
+          "id": "block",
+          "target": "target",
+          "event": "contextmenu",
+          "registration": "listener",
+          "effect": "prevent-default",
+          "when": { "button": 2 }
+        }
+      ],
+      "steps": [
+        {
+          "action": "dispatch-event",
+          "target": "target",
+          "event": "contextmenu",
+          "init": { "button": 2 }
+        }
+      ],
+      "assertions": [
+        {
+          "type": "event-default-prevented",
+          "step": 0,
+          "expected": false
+        }
+      ]
+    },
+    {
+      "id": "deny-network",
+      "kind": "policy",
+      "criterion": "no-network",
+      "capability": "network",
+      "expected": "denied"
+    }
+  ]
+}

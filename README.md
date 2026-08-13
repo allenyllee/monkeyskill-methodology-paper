@@ -7,7 +7,7 @@ LaTeX source for the paper:
 The paper describes a software-development method in which behavioral contracts, executable demos, constrained test specifications, and replayable evidence are durable, while LLM-generated implementations remain replaceable.
 
 A compiled PDF of the current draft is attached to the
-[`v0.1.1-draft` prerelease](https://github.com/allenyllee/monkeyskill-methodology-paper/releases/tag/v0.1.1-draft).
+[`v0.2.0-draft` prerelease](https://github.com/allenyllee/monkeyskill-methodology-paper/releases/tag/v0.2.0-draft).
 
 ## Build
 
@@ -39,6 +39,7 @@ latexmk -C
 
 - `main.tex` — complete paper source
 - `references.bib` — BibTeX references
+- `appendix/` — manifest, MSkill, TestSpec, and grammar examples included by the paper
 - `Makefile` — convenience build targets
 - `.latexmkrc` — reproducible `latexmk` defaults
 
