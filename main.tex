@@ -352,6 +352,13 @@ The reference library combines 10 framing families, 8 unsafe consequences, 4 str
 \]
 surface variants before insertion positions. Diversity comes from semantic and structural composition, not synonym substitution alone. The orchestrator exhaustively validates the smaller allowlisted plan space and separately tests template families.
 
+For auditability and exact reproduction, Appendix~\ref{app:attacker-templates} lists the
+complete template library used by the reference implementation. The listing is data,
+not a prompt entrusted to Attacker: Attacker returns only three allowlisted identifiers,
+and trusted code chooses the concrete heading, override, bypass, consequence wording,
+structure, and insertion boundary. The published templates contain no executable code,
+credentials, collected data, or concrete network destination.
+
 \section{Constrained Testing and Runtime Enforcement}
 
 Builder and Tester use the same \testspec{} DSL format, avoiding the misleading impression that public and independent suites are different languages. The distinction is authorship and visibility. A \testspec{} can declare fixtures, permitted actions, checkpoints, and assertions, but cannot contain JavaScript, arbitrary selectors, URLs, network requests, or executable expressions.
@@ -635,6 +642,25 @@ cannot smuggle executable test code into the trusted Runner.
   caption={Compact TestSpec grammar and representative allowlists.},
   label={lst:grammar}
 ]{appendix/testspec-grammar.txt}
+
+\section{Trusted Attacker Template Library}
+\label{app:attacker-templates}
+
+Listing~\ref{lst:attacker-templates} reproduces the complete fixed template library used
+to assemble reject canaries in the reference implementation. It includes the Attacker's
+three-field allowlisted plan schema, every heading, instruction-override phrase,
+validation-bypass phrase, unsafe-consequence phrase, and presentation structure. Braced
+tokens in the four structure strings are inert substitution fields. The trusted
+orchestrator selects one value from each required family and inserts the assembled prose
+only at a paragraph boundary outside fenced content. The LLM Attacker never emits any of
+these strings and cannot introduce a URL or free-form payload.
+
+\lstinputlisting[
+  language=json,
+  basicstyle=\ttfamily\scriptsize,
+  caption={Complete non-executable reject-canary template library.},
+  label={lst:attacker-templates}
+]{appendix/attacker-template-library.json}
 
 \bibliographystyle{plainnat}
 \bibliography{references}

@@ -21,9 +21,11 @@ the longer-term Demo-first development and criterion-evolution loop, plus an exp
 role-interaction diagram for Tester A, Attacker, Tester B, Builder, Runner, and trusted
 orchestration. The reference case study also records the current three-run convergence
 threshold, repair accounting, final-evidence requirements, and observed attempt counts.
+The appendices reproduce the example MSkill package, shared TestSpec DSL, and complete
+trusted non-executable Attacker template library used by the differential injection gate.
 
 A compiled PDF of the current draft is attached to the
-[`v0.6.0-draft` prerelease](https://github.com/allenyllee/monkeyskill-methodology-paper/releases/tag/v0.6.0-draft).
+[`v0.7.0-draft` prerelease](https://github.com/allenyllee/monkeyskill-methodology-paper/releases/tag/v0.7.0-draft).
 
 ## Build
 
