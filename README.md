@@ -6,6 +6,9 @@ LaTeX source for the paper:
 
 The paper describes a software-development method in which behavioral contracts, executable demos, constrained test specifications, and replayable evidence are durable, while LLM-generated implementations remain replaceable.
 
+A compiled PDF of the current draft is attached to the
+[`v0.1.0-draft` prerelease](https://github.com/allenyllee/monkeyskill-methodology-paper/releases/tag/v0.1.0-draft).
+
 ## Build
 
 Requirements:
