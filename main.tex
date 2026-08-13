@@ -13,6 +13,7 @@
 \usepackage{xspace}
 \usepackage{listings}
 \usepackage{xcolor}
+\usepackage{graphicx}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,fit,shapes.geometric}
 \usepackage[numbers,sort&compress]{natbib}
@@ -511,6 +512,41 @@ Static and DOM assertions do not fully represent interactive software. GUI-agent
 For browser capabilities, the candidate is installed on its registered origin, exercised with real pointer and keyboard interactions, and observed after application-specific delay boundaries. Pixel-dependent criteria---selection highlighting, contrast, overlays, clipping, stacking, canvas/media appearance, and native browser UI---require a screenshot after the interaction. Computed style alone cannot upgrade a visual criterion from inconclusive to passed.
 
 Evidence is attached to a candidate hash. A screenshot from one generated implementation cannot be applied retroactively to another. Ambiguous checks remain \emph{inconclusive}; they are neither silently passed nor automatically treated as functional failures.
+
+Figure~\ref{fig:demo-evidence} shows the form of evidence produced by a real replay of
+the published Restore Right Click Demo on 2026-08-14. Panel~(a) was captured after an
+actual pointer drag and release: the selected text remains visibly highlighted rather
+than merely existing as an invisible DOM range. Panel~(b) was captured after clicking
+through a transparent overlay and entering a marker, then performing a native paste and
+waiting beyond the page's rollback checkpoint. Both resulting values remain visible.
+
+These images are illustrative reference-replay artifacts, not retroactive evidence for
+the earlier three-run sequence in Table~\ref{tab:reference-runs}: the browser surface did
+not expose the installed candidate hash at capture time. A formal evidence bundle must
+add the candidate hash, mode, origin, interaction script, wait boundary, timestamp, and
+uncropped source image so another reviewer can bind pixels to the exact candidate.
+
+\begin{figure}[H]
+\centering
+\textbf{(a) Visible selection after real drag and release}\par\smallskip
+\includegraphics[
+  width=\textwidth,
+  trim=15 347 20 230,
+  clip
+]{appendix/demo-evidence-selection.png}
+
+\vspace{3mm}
+\textbf{(b) Overlay targeting and delayed paste-rollback result}\par\smallskip
+\includegraphics[
+  width=\textwidth,
+  trim=15 272 20 190,
+  clip
+]{appendix/demo-evidence-overlay-paste.png}
+\caption{Illustrative screenshots from a real interaction replay on the published Demo.
+The images establish rendered selection and retained input values; the surrounding text
+states why they are examples of the evidence format rather than hash-bound campaign data.}
+\label{fig:demo-evidence}
+\end{figure}
 
 \section{Convergence and Stability}
 

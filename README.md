@@ -24,11 +24,15 @@ threshold, repair accounting, final-evidence requirements, and observed attempt 
 An additional versioned repair diagram makes Builder's iterative role explicit: Builder
 infers a repair from public or bounded independent diagnostics and synthesizes a complete
 replacement, while trusted Runner checks remain the acceptance authority.
+The real-environment section includes screenshots from a fresh published-Demo replay:
+visible selection after an actual drag, successful input targeting through an overlay,
+and a pasted marker retained beyond the page's rollback checkpoint. The paper labels
+their provenance limits rather than treating them as evidence for an unrecorded hash.
 The appendices reproduce the example MSkill package, shared TestSpec DSL, and complete
 trusted non-executable Attacker template library used by the differential injection gate.
 
 A compiled PDF of the current draft is attached to the
-[`v0.8.0-draft` prerelease](https://github.com/allenyllee/monkeyskill-methodology-paper/releases/tag/v0.8.0-draft).
+[`v0.9.0-draft` prerelease](https://github.com/allenyllee/monkeyskill-methodology-paper/releases/tag/v0.9.0-draft).
 
 ## Build
 
