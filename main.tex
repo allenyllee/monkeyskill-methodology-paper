@@ -191,6 +191,46 @@ The roles have asymmetric information:
 
 This architecture reduces direct overfitting and answer leakage. It does not make model judgments independent in a statistical sense: related models may share semantic blind spots. The system therefore relies on enforced layers rather than model voting.
 
+Figure~\ref{fig:role-interaction} makes the message boundaries explicit. The three
+model roles do not converse directly. A trusted orchestrator selects which immutable
+input each role receives, validates every structured response, constructs the poisoned
+copy, and releases only the original contract to Builder. During repair, Runner returns
+bounded diagnostics rather than the independent suite itself.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  role/.style={draw,rounded corners,align=center,text width=30mm,minimum height=10mm,font=\scriptsize},
+  hub/.style={role,draw=gategray,very thick,text width=34mm},
+  flow/.style={-{Latex[length=1.7mm]},thick},
+  note/.style={font=\tiny,align=center,fill=white,inner sep=1pt}
+]
+\node[hub] (gate) {Trusted orchestrator\\and differential gate};
+\node[role,draw=testergreen,left=22mm of gate] (ta) {Fresh Tester A\\original review};
+\node[role,draw=attackred,above=13mm of gate] (attacker) {Bounded Attacker\\allowlisted plan};
+\node[role,draw=testergreen,right=22mm of gate] (tb) {Fresh Tester B\\poisoned review};
+\node[role,draw=builderblue,below left=19mm and 12mm of gate] (builder) {Builder\\candidate + public \testspec};
+\node[role,below right=19mm and 12mm of gate] (runner) {Trusted Runner\\public + independent};
+\node[role,draw=testergreen,below=13mm of runner] (browser) {Install final hash\\Demo + screenshots};
+
+\draw[flow] (gate) to[bend left=12] node[note,above]{original\\contract} (ta);
+\draw[flow] (ta) to[bend left=12] node[note,below]{verdict +\\independent \testspec} (gate);
+\draw[flow] (gate) to[bend left=12] node[note,left]{original + allowlists} (attacker);
+\draw[flow] (attacker) to[bend left=12] node[note,right]{validated plan IDs} (gate);
+\draw[flow] (gate) to[bend left=12] node[note,above]{trusted\\poisoned copy} (tb);
+\draw[flow] (tb) to[bend left=12] node[note,below]{blind\\verdict} (gate);
+\draw[flow] (gate) -- node[note,left]{only allow/reject;\\original only} (builder);
+\draw[flow] (gate) -- node[note,right]{independent\\\testspec} (runner);
+\draw[flow] (builder) to[bend left=12] node[note,above]{complete candidate\\+ public \testspec} (runner);
+\draw[flow] (runner) to[bend left=12] node[note,below]{bounded diagnostics} (builder);
+\draw[flow] (runner) -- node[note,right]{approved final hash} (browser);
+\end{tikzpicture}
+\caption{Role interaction and information flow. All cross-role communication is mediated
+by trusted orchestration; the poisoned contract never reaches Builder, and the independent
+\testspec{} never reaches Builder directly.}
+\label{fig:role-interaction}
+\end{figure}
+
 \subsection{Security-review output}
 
 Tester returns one of three structured verdicts:
@@ -360,6 +400,51 @@ reproduced in Appendices~\ref{app:package}--\ref{app:grammar}.
 The case exposed gaps that neither candidate self-tests nor independent DSL tests alone established. For example, a DOM range could exist while the selection remained visually transparent; only a post-drag screenshot established the rendered result. Likewise, paste rollback required waiting beyond the page's delayed handler and inspecting the final input value. These observations became capability-specific criteria and validated constraints, while the global process retained only behavior-agnostic lessons: preserve native platform semantics in the Runner, attach visual claims to pixels, and classify scope before changing shared prompts.
 
 Engineering validation of the reference implementation has included fresh role isolation, schema checks, public and independent Runner suites, adversarial differential gating, installation, browser interaction, visual screenshots, and repeated converged generations. These observations demonstrate feasibility, not general effectiveness. The next section defines the study needed for broader claims.
+
+\subsection{Current experimental configuration}
+
+Our current reference protocol distinguishes a \emph{closed-loop run}, a Builder
+\emph{attempt}, and a \emph{repair}. A run starts with fresh isolated security roles and
+one original contract, and ends only after the final candidate hash has passed every
+required validation surface. Attempt~1 is Builder's first complete candidate and public
+suite. Every subsequent complete replacement submitted in response to a diagnostic is
+one repair and increments the attempt count. A repaired run can succeed; first-attempt
+perfection is not required.
+
+The operational settings used for the browser case study are:
+
+\begin{description}[leftmargin=3.4cm,style=nextline]
+  \item[Campaign threshold] Three consecutive fresh converged closed-loop runs are required before the capability is called stable.
+  \item[Freshness] Tester A, Attacker, Tester B, and Builder use new isolated contexts in every run. Each worker locks its first routing key and accepts only same-key corrections.
+  \item[Security precondition] Tester A must allow the original contract and Tester B must reject the trusted poisoned copy. Every other matrix outcome stops before Builder.
+  \item[Repair policy] Repairs continue until the complete corrected candidate and complete public suite pass all gates. Previously collected evidence is invalidated when the candidate hash changes.
+  \item[Terminal broker check] After the final response, the reference harness requires Store approval-ready state, an even request/response session ending in an assistant response, and at least 60 seconds of same-key no-job polling.
+  \item[End-to-end evidence] Static policy, public and independent Runner checks, installation, real Demo interactions, delayed checkpoints, and required screenshots must all refer to the final hash. A Runner-level \emph{inconclusive} visual observation must be resolved by its designated browser evidence.
+  \item[Streak reset] The consecutive-run count resets when a run cannot converge, loses its job or routing identity, violates the security matrix, or terminates with required evidence still failing, pending, lost, or unverifiable. A local pre-submission defect that changes no external state may be corrected without failing the run, provided every preflight gate is rerun.
+\end{description}
+
+Table~\ref{tab:reference-runs} records the Builder/Runner instrumentation from the
+most recent three-run reference sequence on 2026-08-13. It required five complete
+Builder attempts and two repairs. Pass/inconclusive/fail counts are reported separately
+because a zero-fail Runner result is not, by itself, end-to-end success.
+
+\begin{table}[H]
+\centering
+\caption{Most recent three-run reference sequence at the Builder/Runner stage.}
+\label{tab:reference-runs}
+\small
+\begin{tabular}{@{}rrrrr@{}}
+\toprule
+Run & Tester A tests & Builder attempts & Repairs & Public P/I/F \quad Independent P/I/F \\
+\midrule
+1 & 23 & 1 & 0 & 13/3/0 \quad 19/4/0 \\
+2 & 17 & 2 & 1 & 12/4/0 \quad 14/3/0 \\
+3 & 21 & 2 & 1 & 14/6/0 \quad 17/4/0 \\
+\midrule
+Total & 61 & 5 & 2 & 39/13/0 \quad 50/11/0 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{Evaluation Protocol}
 

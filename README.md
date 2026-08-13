@@ -7,10 +7,13 @@ LaTeX source for the paper:
 The paper describes a software-development method in which behavioral contracts, executable demos, constrained test specifications, and replayable evidence are durable, while LLM-generated implementations remain replaceable.
 
 It includes separate architecture diagrams for the per-installation security pipeline and
-the longer-term Demo-first development and criterion-evolution loop.
+the longer-term Demo-first development and criterion-evolution loop, plus an explicit
+role-interaction diagram for Tester A, Attacker, Tester B, Builder, Runner, and trusted
+orchestration. The reference case study also records the current three-run convergence
+threshold, repair accounting, terminal checks, and observed attempt counts.
 
 A compiled PDF of the current draft is attached to the
-[`v0.3.0-draft` prerelease](https://github.com/allenyllee/monkeyskill-methodology-paper/releases/tag/v0.3.0-draft).
+[`v0.4.0-draft` prerelease](https://github.com/allenyllee/monkeyskill-methodology-paper/releases/tag/v0.4.0-draft).
 
 ## Build
 
