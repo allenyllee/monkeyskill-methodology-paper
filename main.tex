@@ -8,6 +8,7 @@
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{enumitem}
+\usepackage{float}
 \usepackage{xspace}
 \usepackage{listings}
 \usepackage{xcolor}
@@ -278,6 +279,62 @@ We classify every failure before editing prompts:
 \end{description}
 
 This classification prevents a successful repair for one browser event or timing edge case from becoming irrelevant or misleading global prompt text.
+
+Figure~\ref{fig:development-loop} summarizes the longer-lived development process.
+Unlike Figure~\ref{fig:pipeline}, which describes one installation attempt, this loop
+shows how evidence changes durable artifacts across attempts. Every corrected branch
+returns through fresh isolated roles and replays the complete evidence stack.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  node distance=6mm and 7mm,
+  devbox/.style={draw,rounded corners,align=center,minimum height=9mm,text width=27mm,font=\scriptsize},
+  devdecision/.style={draw,diamond,aspect=2.2,align=center,font=\scriptsize,inner sep=1.2pt},
+  devarrow/.style={-{Latex[length=1.8mm]},thick},
+  branch/.style={devbox,text width=28mm,minimum height=12mm}
+]
+\node[devbox] (problem) {Observed user or\\Demo failure};
+\node[devbox,right=of problem] (demo) {Minimal reproducible\\Demo + baseline};
+\node[devbox,right=of demo] (contract) {Smallest justified\\criteria + safety};
+\node[devbox,draw=builderblue,right=of contract] (loop) {Fresh security gate,\\Builder, and Runner};
+
+\node[devbox,draw=testergreen,below=9mm of loop] (browser) {Install final hash; real\\interaction + screenshot};
+\node[devdecision,left=10mm of browser] (pass) {all evidence\\passes?};
+\node[devbox,draw=testergreen,left=10mm of pass] (converged) {Count converged run;\\release at threshold};
+\node[devbox,draw=attackred,below=8mm of pass] (classify) {Classify the reproduced failure\\before changing any prompt};
+
+\node[branch,below left=7mm and 24mm of classify] (global)
+  {\textbf{Global framework}\\Fix shared policy/Runner;\\add generic regression};
+\node[branch,below=7mm of classify] (skill)
+  {\textbf{MSkill contract}\\Keep Demo case; add criterion\\or validated constraint};
+\node[branch,below right=7mm and 24mm of classify] (candidate)
+  {\textbf{Candidate only}\\Repair/regenerate code;\\no durable contract change};
+\node[devbox,draw=builderblue,below=8mm of skill] (replay)
+  {Fresh contexts: regenerate and replay all superseded evidence};
+
+\draw[devarrow] (problem)--(demo);
+\draw[devarrow] (demo)--(contract);
+\draw[devarrow] (contract)--(loop);
+\draw[devarrow] (loop)--(browser);
+\draw[devarrow] (browser)--(pass);
+\draw[devarrow] (pass)--node[above,font=\scriptsize]{yes}(converged);
+\draw[devarrow] (pass)--node[right,font=\scriptsize]{no}(classify);
+\draw[devarrow] (classify)--(global);
+\draw[devarrow] (classify)--(skill);
+\draw[devarrow] (classify)--(candidate);
+\draw[devarrow] (global.south) |- (replay.west);
+\draw[devarrow] (skill)--(replay);
+\draw[devarrow] (candidate.south) |- (replay.east);
+\coordinate (returnlane) at (candidate.east);
+\draw[devarrow,dashed] (replay.east) -| (returnlane)
+  |- node[pos=.48,right,font=\scriptsize]{repeat} (loop.east);
+\end{tikzpicture}
+\caption{Evidence-driven development across generations. A failure changes only the
+smallest durable layer justified by its classification; the corrected system then
+re-enters a fresh complete closed loop.}
+\label{fig:development-loop}
+\end{figure}
 
 \section{Real-Environment and Visual Evidence}
 
