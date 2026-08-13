@@ -94,7 +94,7 @@ This paper's primary contribution is a development methodology; its multi-agent 
 \begin{itemize}[leftmargin=*]
   \item a durable-artifact model in which readable contracts, Demos, criteria, bounded test specifications, and replayable evidence persist while generated implementations remain replaceable;
   \item an evidence-driven criterion-evolution discipline that promotes reproduced failures to the smallest justified durable layer while avoiding unnecessary implementation prescriptions;
-  \item an auditable validation architecture combining isolated generation, independently authored tests in one constrained DSL, bounded repair feedback, and final-hash real-environment evidence;
+  \item an auditable validation architecture combining isolated generation, independently authored tests in one constrained DSL, Builder-led iterative candidate repair from bounded feedback, and final-hash real-environment evidence;
   \item a differential security gate that tests whether untrusted contract text can override a known rejection boundary before any candidate is generated; and
   \item a convergence and evaluation protocol for measuring repeated synthesis, repair cost, implementation diversity, safety, and end-to-end conformance.
 \end{itemize}
@@ -370,11 +370,59 @@ The trusted Runner interprets this grammar inside an isolated environment and re
 
 This design follows classic security principles: least privilege, complete mediation, and defense in depth are more reliable than trusting a model's intent \citep{saltzer1975protection,zhang2025securityprinciples}. The DSL is not a universal verifier. Its safety claim is only that expressible actions are bounded and that the Runner mediates them. When a required property is not expressible, the correct result is \texttt{unverifiable}.
 
-\subsection{Repair without hidden-test leakage}
+\subsection{Builder self-repair as iterative candidate synthesis}
 
-The repair loop has two diagnostic channels. Public failures may expose detailed traces because Builder authored those tests. Independent failures expose only criterion identifier, mode, assertion category, and expected/actual summaries. Builder must return the complete candidate and complete public suite after every repair. Any evidence gathered for a prior candidate hash is superseded.
+Builder is not a one-shot code generator. After producing candidate $C_i$ and its public
+\testspec{}, it remains responsible for diagnosing reported failures, choosing a repair,
+and synthesizing a complete replacement $C_{i+1}$. Builder may change implementation
+strategy rather than patching one prescribed mechanism. It does not, however, judge its
+own success: trusted policy checks and Runner executions remain the acceptance authority.
 
-This is analogous to CEGIS in that failures constrain subsequent candidates, but the method deliberately retains multiple partial oracles instead of claiming formal equivalence to a complete verifier.
+The repair loop deliberately has two diagnostic channels. Public failures may expose
+detailed traces because Builder authored those tests. Independent failures expose only
+criterion identifier, mode, assertion category, and expected/actual summaries. The hidden
+Independent TestSpec is never revealed. Builder must infer a root cause from this bounded
+feedback and return the complete candidate and complete public suite after every repair.
+
+Figure~\ref{fig:builder-repair} shows the resulting versioned loop. Every replacement is
+assigned a new candidate hash; evidence gathered for $C_i$ is superseded and cannot be
+carried to $C_{i+1}$. The Runner then replays the complete public and independent suites,
+not only the previously failing check. A repaired run succeeds when the final candidate
+converges across all required validation surfaces. First-attempt perfection is neither
+required nor treated as the method's objective.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  node distance=7mm and 8mm,
+  repairbox/.style={draw,rounded corners,align=center,text width=30mm,minimum height=10mm,font=\scriptsize},
+  repairdecision/.style={draw,diamond,aspect=2.0,align=center,font=\scriptsize,inner sep=1.2pt},
+  repairarrow/.style={-{Latex[length=1.8mm]},thick},
+  repairnote/.style={font=\tiny,align=center,fill=white,inner sep=1pt}
+]
+\node[repairbox,draw=builderblue] (builder) {Builder synthesizes\\complete $C_i$ + public \testspec};
+\node[repairbox,right=of builder] (runner) {Trusted Runner replays\\all public + independent tests};
+\node[repairdecision,right=of runner] (pass) {all required\\checks pass?};
+\node[repairbox,draw=testergreen,below=10mm of pass] (evidence) {Bind installation, Demo,\\and visual evidence to hash $C_i$};
+\node[repairbox,draw=attackred,below=10mm of runner] (diagnostic) {Failure boundary\\public trace or bounded\\independent diagnostic};
+\node[repairbox,draw=builderblue,below=10mm of builder] (repair) {Builder infers root cause\\and synthesizes complete $C_{i+1}$};
+
+\draw[repairarrow] (builder)--(runner);
+\draw[repairarrow] (runner)--(pass);
+\draw[repairarrow] (pass)--node[right,font=\tiny]{yes}(evidence);
+\draw[repairarrow] (pass.south west) -- ++(0,-3mm) -| node[pos=.18,above,font=\tiny]{no} (diagnostic.north);
+\draw[repairarrow] (diagnostic)--(repair);
+\draw[repairarrow] (repair.west) -- ++(-7mm,0) |- node[pos=.23,left,font=\tiny,align=right]{new hash; invalidate\\all $C_i$ evidence} (builder.west);
+\end{tikzpicture}
+\caption{Builder-led repair with independent acceptance. Builder chooses the replacement implementation, while trusted checks decide whether each complete candidate advances.}
+\label{fig:builder-repair}
+\end{figure}
+
+This is analogous to CEGIS in that failures constrain subsequent candidates, but the
+method retains multiple partial oracles rather than claiming formal equivalence to a
+complete verifier. The repair outcome also feeds the scope classification below: a defect
+may belong only to one candidate, reveal a missing capability-specific constraint, or
+expose a shared Runner or framework error.
 
 \section{Demo-First Criterion Evolution}
 
