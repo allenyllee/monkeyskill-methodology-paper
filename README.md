@@ -38,7 +38,6 @@ latexmk -C
 - `references.bib` — BibTeX references
 - `Makefile` — convenience build targets
 - `.latexmkrc` — reproducible `latexmk` defaults
-- `.github/workflows/build-paper.yml` — CI compilation and PDF artifact
 
 ## arXiv preparation
 
