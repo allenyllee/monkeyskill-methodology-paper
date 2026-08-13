@@ -386,9 +386,9 @@ Evidence is attached to a candidate hash. A screenshot from one generated implem
 
 \section{Convergence and Stability}
 
-Stability does not mean identical generated code or a perfect first attempt. A run counts as converged when every discovered defect is corrected inside the defined loop, the complete corrected output is revalidated, and no failing, pending, lost, or unverifiable result remains at the terminal checkpoint. Installation, real interactions, and required screenshots must apply to the final hash.
+Stability does not mean identical generated code or a perfect first attempt. A run counts as converged when every discovered defect is corrected inside the defined loop, the complete corrected output is revalidated, and no required result remains failing, unresolved, or unverifiable at the final checkpoint. Installation, real interactions, and required screenshots must apply to the final hash.
 
-Intermediate repair is positive evidence about the loop, not a reason to discard the run. A run does not count if routing state is lost, correction cannot converge, required evidence is unavailable, a safety gate blocks, or execution ends before final replay. Repeated-generation stability requires a declared number of fresh end-to-end runs with new isolated workers.
+Intermediate repair is positive evidence about the loop, not a reason to discard the run. A run does not count if correction cannot converge, required evidence is unavailable, a safety gate blocks, or execution ends before final replay. Repeated-generation stability requires a declared number of fresh end-to-end runs with new isolated role contexts.
 
 \section{Reference Case Study}
 
@@ -415,12 +415,11 @@ The operational settings used for the browser case study are:
 
 \begin{description}[leftmargin=3.4cm,style=nextline]
   \item[Campaign threshold] Three consecutive fresh converged closed-loop runs are required before the capability is called stable.
-  \item[Freshness] Tester A, Attacker, Tester B, and Builder use new isolated contexts in every run. Each worker locks its first routing key and accepts only same-key corrections.
+  \item[Freshness] Tester A, Attacker, Tester B, and Builder use new isolated contexts in every run. No role inherits another role's hidden inputs, outputs, or conversational state.
   \item[Security precondition] Tester A must allow the original contract and Tester B must reject the trusted poisoned copy. Every other matrix outcome stops before Builder.
   \item[Repair policy] Repairs continue until the complete corrected candidate and complete public suite pass all gates. Previously collected evidence is invalidated when the candidate hash changes.
-  \item[Terminal broker check] After the final response, the reference harness requires Store approval-ready state, an even request/response session ending in an assistant response, and at least 60 seconds of same-key no-job polling.
   \item[End-to-end evidence] Static policy, public and independent Runner checks, installation, real Demo interactions, delayed checkpoints, and required screenshots must all refer to the final hash. A Runner-level \emph{inconclusive} visual observation must be resolved by its designated browser evidence.
-  \item[Streak reset] The consecutive-run count resets when a run cannot converge, loses its job or routing identity, violates the security matrix, or terminates with required evidence still failing, pending, lost, or unverifiable. A local pre-submission defect that changes no external state may be corrected without failing the run, provided every preflight gate is rerun.
+  \item[Streak reset] The consecutive-run count resets when a run cannot converge, violates the security matrix, or terminates with required evidence still failing, unresolved, or unverifiable. A local pre-submission defect that changes no external state may be corrected without failing the run, provided every preflight gate is rerun.
 \end{description}
 
 Table~\ref{tab:reference-runs} records the Builder/Runner instrumentation from the

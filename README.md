@@ -10,7 +10,7 @@ It includes separate architecture diagrams for the per-installation security pip
 the longer-term Demo-first development and criterion-evolution loop, plus an explicit
 role-interaction diagram for Tester A, Attacker, Tester B, Builder, Runner, and trusted
 orchestration. The reference case study also records the current three-run convergence
-threshold, repair accounting, terminal checks, and observed attempt counts.
+threshold, repair accounting, final-evidence requirements, and observed attempt counts.
 
 A compiled PDF of the current draft is attached to the
 [`v0.4.0-draft` prerelease](https://github.com/allenyllee/monkeyskill-methodology-paper/releases/tag/v0.4.0-draft).
