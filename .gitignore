@@ -10,3 +10,4 @@
 *.xdv
 main.pdf
 tmp/
+output/pdf/

@@ -2,7 +2,7 @@
 
 LaTeX source for the paper:
 
-> **Evidence-Driven Generative Development: Closed-Loop Synthesis with Independent Testing and Adversarial Differential Gates**
+> **Evidence-Driven Generative Development: A Closed-Loop Method for Building and Validating LLM-Generated Software**
 
 The paper describes a software-development method in which behavioral contracts, executable demos, constrained test specifications, and replayable evidence are durable, while LLM-generated implementations remain replaceable.
 
@@ -13,7 +13,7 @@ orchestration. The reference case study also records the current three-run conve
 threshold, repair accounting, final-evidence requirements, and observed attempt counts.
 
 A compiled PDF of the current draft is attached to the
-[`v0.4.0-draft` prerelease](https://github.com/allenyllee/monkeyskill-methodology-paper/releases/tag/v0.4.0-draft).
+[`v0.4.1-draft` prerelease](https://github.com/allenyllee/monkeyskill-methodology-paper/releases/tag/v0.4.1-draft).
 
 ## Build
 

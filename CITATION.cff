@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this methodology, please cite the paper and software."
-title: "Evidence-Driven Generative Development: Closed-Loop Synthesis with Independent Testing and Adversarial Differential Gates"
+title: "Evidence-Driven Generative Development: A Closed-Loop Method for Building and Validating LLM-Generated Software"
 type: article
 authors:
   - family-names: Li
