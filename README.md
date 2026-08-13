@@ -4,7 +4,11 @@ LaTeX source for the paper:
 
 > **Evidence-Driven Generative Development: A Closed-Loop Method for Building and Validating LLM-Generated Software**
 
-The paper describes a software-development method in which behavioral contracts, executable demos, constrained test specifications, and replayable evidence are durable, while LLM-generated implementations remain replaceable.
+The paper's central claim is that the durable unit of generative software should be a
+human-readable behavioral contract plus replayable evidence, not one generated
+implementation. Executable Demos, criteria, constrained test specifications, and
+final-hash browser evidence persist while LLM-generated implementations remain
+replaceable candidates.
 
 It includes separate architecture diagrams for the per-installation security pipeline and
 the longer-term Demo-first development and criterion-evolution loop, plus an explicit
@@ -13,7 +17,7 @@ orchestration. The reference case study also records the current three-run conve
 threshold, repair accounting, final-evidence requirements, and observed attempt counts.
 
 A compiled PDF of the current draft is attached to the
-[`v0.4.1-draft` prerelease](https://github.com/allenyllee/monkeyskill-methodology-paper/releases/tag/v0.4.1-draft).
+[`v0.5.0-draft` prerelease](https://github.com/allenyllee/monkeyskill-methodology-paper/releases/tag/v0.5.0-draft).
 
 ## Build
 

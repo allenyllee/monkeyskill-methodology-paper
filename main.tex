@@ -68,32 +68,32 @@ A Closed-Loop Method for Building and Validating LLM-Generated Software}
 \maketitle
 
 \begin{abstract}
-Large language models can generate useful software from natural-language requests, but a generated implementation is neither a durable specification nor trustworthy evidence of its own correctness. We present \emph{evidence-driven generative development} (\method), a specification-first workflow in which human-readable behavioral contracts, executable demonstrations, constrained test specifications, and replayable browser evidence are durable artifacts while generated code remains disposable. The workflow separates three model roles. A Builder synthesizes an implementation and public tests; an independent Tester first reviews the untrusted contract and then writes tests in a non-executable domain-specific language; and a bounded Attacker inserts a trusted, known-reject canary into a poisoned copy of an otherwise acceptable contract. A differential gate permits generation only when a fresh Tester allows the original and a second fresh Tester rejects the poisoned variant. Candidate repair then proceeds through public and hidden tests, sandboxed execution, installation, real-environment interaction, and screenshot-backed visual checks. Failures are classified before being promoted into shared policy or skill-specific constraints. We describe the architecture, threat model, acceptance matrix, criterion-evolution rules, and a browser-extension case study. This paper is a methods and systems report: it defines falsifiable evaluation protocols and reports engineering observations, but does not claim that model-based review or finite testing proves semantic safety.
+Large language models can generate useful software from natural-language requests, but a generated implementation is neither a durable specification nor trustworthy evidence of its own correctness. We present \emph{evidence-driven generative development} (\method), a software-development method that makes human-readable behavioral contracts, executable demonstrations, constrained test specifications, and replayable evidence the durable product record while treating each generated implementation as a replaceable candidate. The goal is to preserve implementation freedom without giving up repeatability, safety, or auditability. A candidate advances through isolated generation and independent specification, a bounded non-executable test DSL and trusted Runner, an adversarial differential review of the untrusted contract, and final-hash installation, real interaction, and screenshot-backed visual checks. Reproducible failures evolve the smallest justified durable layer---shared framework, capability contract, or regression evidence---before the complete loop is replayed. A Builder, independent Testers, and a bounded Attacker are mechanisms for enforcing these evidence boundaries rather than the contribution by themselves. We describe the durable-artifact model, criterion-evolution discipline, security and repair architecture, convergence protocol, and a browser-extension case study. This methods and systems report defines falsifiable evaluation protocols and reports engineering observations; it does not claim that finite testing or model review proves semantic safety.
 \end{abstract}
 
 \section{Introduction}
 
-Code-generating language models make repeated sampling a practical way to obtain working programs, but functional success varies across samples and tasks \citep{chen2021codex}. Treating one generated program as the permanent source of truth therefore discards a central advantage of generative systems: an implementation can be replaced when the underlying intent remains stable. At the same time, replacing hand-written code with prose alone creates two hazards. First, prose is incomplete until exercised against observable behavior. Second, prose supplied to an agent may contain adversarial instructions, including indirect prompt injection that blurs the boundary between data and instructions \citep{greshake2023indirect,yi2023bipia}.
+Code-generating language models make repeated sampling a practical way to obtain working programs, but functional success varies across samples and tasks \citep{chen2021codex}. Conventional development treats source code as the durable artifact and later changes it in place. A generative system creates another possibility: preserve intent and evidence, discard a defective implementation, and synthesize a different one. Treating one sample as the permanent source of truth therefore gives up a central advantage of generation. Treating prose alone as the replacement is also insufficient. Prose is incomplete until exercised against observable behavior, and prose supplied to an agent may contain adversarial instructions that blur the boundary between data and instructions \citep{greshake2023indirect,yi2023bipia}.
 
-We ask: \emph{What should remain durable if executable code is regenerated, and what evidence is sufficient to install a generated implementation?} Our answer is \method, a workflow organized around four principles:
+We ask: \emph{What should remain durable if executable code is regenerated, and what evidence is sufficient to accept one generated candidate?} Our answer is \method. Its central claim is that the durable unit of generative software should be a behavioral contract plus replayable evidence, not a particular generated implementation. The method is organized around four principles:
 
 \begin{enumerate}[leftmargin=*,itemsep=2pt]
-  \item preserve a human-readable contract and a minimal real-world demonstration, not a particular generated implementation;
-  \item separate generation, independent specification, and adversarial mutation into isolated roles;
-  \item enforce tests through a bounded, non-executable DSL and a trusted Runner rather than trusting model explanations; and
-  \item evolve criteria from reproducible failures while retaining implementation freedom wherever evidence does not require a mechanism.
+  \item preserve a human-readable contract, a minimal real-world demonstration, criteria, and evidence rather than a particular generated implementation;
+  \item retain implementation freedom except where repeated evidence justifies a behavior or mechanism constraint;
+  \item separate generation, independent specification, and adversarial mutation behind a bounded DSL and trusted enforcement; and
+  \item evolve the durable record from reproducible failures, then replay all required evidence against the new final hash.
 \end{enumerate}
 
 The process resembles counterexample-guided inductive synthesis (CEGIS), in which candidate programs are iteratively refined using verifier-produced counterexamples \citep{solarlezama2006sketching}. It differs in three important respects: its specification begins as a human-readable product contract; its oracle is deliberately plural, combining constrained tests, runtime policy, real-browser interaction, and visual evidence; and its security gate challenges the interpretation of the specification before candidate generation.
 
-This paper contributes:
+This paper's primary contribution is a development methodology; its multi-agent topology is one reference realization. Specifically, we contribute:
 
 \begin{itemize}[leftmargin=*]
-  \item a durable-artifact model for LLM-generated software;
-  \item a three-role closed loop with an explicit differential security matrix;
-  \item a trusted, template-driven attacker that tests prompt-injection resistance without granting another model freedom to author arbitrary malicious instructions;
-  \item a rule for separating global framework failures, skill-specific contract failures, and disposable candidate defects; and
-  \item a reproducible evaluation protocol spanning declarative tests, sandbox policy, installation, real interactions, and screenshots.
+  \item a durable-artifact model in which readable contracts, Demos, criteria, bounded test specifications, and replayable evidence persist while generated implementations remain replaceable;
+  \item an evidence-driven criterion-evolution discipline that promotes reproduced failures to the smallest justified durable layer while avoiding unnecessary implementation prescriptions;
+  \item an auditable validation architecture combining isolated generation, independently authored tests in one constrained DSL, bounded repair feedback, and final-hash real-environment evidence;
+  \item a differential security gate that tests whether untrusted contract text can override a known rejection boundary before any candidate is generated; and
+  \item a convergence and evaluation protocol for measuring repeated synthesis, repair cost, implementation diversity, safety, and end-to-end conformance.
 \end{itemize}
 
 \section{Background and Motivation}
@@ -112,7 +112,9 @@ The central design tension is that a strict implementation recipe improves repea
 
 \section{Durable Artifacts}
 
-Generated source is treated as a derivative. The durable record consists of:
+Generated source is treated as a derivative candidate, not the product's sole source of
+truth. The durable record is the smallest package from which a new candidate can be
+generated and judged without inheriting the previous implementation. It consists of:
 
 \begin{description}[leftmargin=2.7cm,style=nextline]
   \item[Demo] A minimal reproduction of the motivating failure, with a visible blocked baseline and expected restored behavior.
@@ -120,18 +122,18 @@ Generated source is treated as a derivative. The durable record consists of:
   \item[Criteria] Stable, uniquely identified behavioral outcomes justified by evidence.
   \item[Test DSL] Builder-authored public and Tester-authored independent \testspec{} documents using the same bounded grammar.
   \item[Runner] A trusted interpreter that constructs fixtures, applies actions, observes allowed state, and enforces capability policy.
-  \item[Evidence] Candidate hashes, test outcomes, browser observations, screenshots, and preserved failure reproductions.
+  \item[Evidence] Candidate hashes, test outcomes, browser observations, screenshots, and preserved failure reproductions that can be replayed against a replacement.
 \end{description}
 
 Appendix~\ref{app:package} shows a concrete package manifest and a representative
 human-readable contract excerpt. Appendix~\ref{app:testspec} shows the same bounded
 \testspec DSL used by public and independent suites.
 
-This split allows multiple implementations to satisfy one contract while keeping validation replayable. It also makes a safety boundary explicit: a behavior that the DSL and Runner cannot enforce is \emph{unverifiable}, not silently safe.
+This split allows multiple implementations to satisfy one contract while keeping validation replayable. Regeneration is therefore an intended maintenance operation rather than a recovery accident. It also makes a safety boundary explicit: a behavior that the DSL and Runner cannot enforce is \emph{unverifiable}, not silently safe.
 
 \section{Closed-Loop Architecture}
 
-Figure~\ref{fig:pipeline} shows the mainline. Tester A reviews the original contract as untrusted data. Only an \texttt{allow} verdict advances to the Attacker. The trusted orchestrator uses the Attacker's allowlisted plan to construct a poisoned variant. Fresh Tester B sees only that variant and is not told the expected answer. Only the pair \texttt{allow}/\texttt{reject} releases the original contract---never the poisoned copy---to Builder.
+The architecture operationalizes the durable-artifact model; it is not a claim that human-named agent roles are intrinsically reliable. Figure~\ref{fig:pipeline} shows one installation attempt. Tester A reviews the original contract as untrusted data. Only an \texttt{allow} verdict advances to the Attacker. The trusted orchestrator uses the Attacker's allowlisted plan to construct a poisoned variant. Fresh Tester B sees only that variant and is not told the expected answer. Only the pair \texttt{allow}/\texttt{reject} releases the original contract---never the poisoned copy---to Builder.
 
 \begin{figure*}[t]
 \centering
@@ -245,7 +247,7 @@ Tester returns one of three structured verdicts:
 
 Both Tester and Builder see human-readable material that may contain instruction-like text. Merely asking Tester to ``ignore injection'' leaves the same model responsible for recognizing and resisting the attack. The differential gate instead adds a known-reject canary and tests whether the review boundary remains effective.
 
-\begin{table}[h]
+\begin{table}[ht]
 \centering
 \caption{Differential acceptance matrix.}
 \label{tab:matrix}
@@ -390,6 +392,11 @@ Stability does not mean identical generated code or a perfect first attempt. A r
 
 Intermediate repair is positive evidence about the loop, not a reason to discard the run. A run does not count if correction cannot converge, required evidence is unavailable, a safety gate blocks, or execution ends before final replay. Repeated-generation stability requires a declared number of fresh end-to-end runs with new isolated role contexts.
 
+This definition separates \emph{candidate success} from \emph{method success}. Candidate
+success means that one final hash satisfies the durable record. Method success additionally
+requires that fresh regeneration can repeatedly produce such candidates without weakening
+the contract, leaking independent tests, or silently carrying evidence across hashes.
+
 \section{Reference Case Study}
 
 We developed the method while building a browser capability that restores context menus, text selection, copy/cut, and native paste behavior on pages that deliberately interfere with those interactions. The Demo grew to cover event cancellation, property handlers, persistent selection removal, invisible selection rendering, transparent overlays, disabled hit testing, keyboard-copy blocking, and paste rollback.
@@ -450,10 +457,10 @@ Total & 61 & 5 & 2 & 39/13/0 \quad 50/11/0 \\
 We propose four research questions:
 
 \begin{description}[leftmargin=1.4cm]
-  \item[RQ1] How often do fresh generations converge to behaviorally conforming implementations compared with direct one-shot generation?
-  \item[RQ2] Which validation surfaces discover non-overlapping failures?
-  \item[RQ3] How reliably does the differential gate detect trusted prompt-injection canaries without rejecting benign contracts?
-  \item[RQ4] How does evidence-driven criterion evolution affect contract size, implementation diversity, repair cost, and regression rate over time?
+  \item[RQ1] Can a durable contract-and-evidence package repeatedly regenerate behaviorally conforming implementations, and how does this compare with preserving and patching one generated implementation?
+  \item[RQ2] How much implementation diversity remains after conformance, and which evidence layers discover non-overlapping failures?
+  \item[RQ3] How reliably does the differential gate detect trusted prompt-injection canaries without rejecting benign contracts or constraining valid implementations?
+  \item[RQ4] How does evidence-driven criterion evolution affect durable-record size, repair cost, regression rate, and long-term maintainability?
 \end{description}
 
 An evaluation should preregister a corpus of capabilities and Demos, model/version settings, sampling parameters, success thresholds, and stopping rules. Each capability should be generated repeatedly under at least these ablations:
@@ -466,7 +473,7 @@ An evaluation should preregister a corpus of capabilities and Demos, model/versi
   \item full method including installed Demo replay and visual evidence.
 \end{enumerate}
 
-Primary outcomes are final end-to-end conformance, unsafe-installation rate, unresolved-failure rate, repair attempts, model tokens, wall-clock time, and implementation diversity. Security evaluation should sample the trusted canary plan space while holding expected semantics constant. Benign over-refusal must be measured on unpoisoned controls. All failures should be labeled by the layer that first detected them, and a subset should receive blinded human adjudication.
+Primary outcomes are fresh-regeneration conformance, final end-to-end conformance, unsafe-installation rate, unresolved-failure rate, repair attempts, model tokens, wall-clock time, implementation diversity, and growth of the durable record. Comparisons should include both one-shot generation and a conventional baseline that patches one retained generated implementation. Security evaluation should sample the trusted canary plan space while holding expected semantics constant. Benign over-refusal must be measured on unpoisoned controls. All failures should be labeled by the layer that first detected them, and a subset should receive blinded human adjudication.
 
 Because repeated sampling alone improves pass rates on code tasks \citep{chen2021codex}, comparisons must equalize or report total sampling budget. Because model-generated red teaming can discover broad harms but remains model-dependent \citep{perez2022redteaming}, results should not be generalized beyond tested models, templates, and Runner capabilities.
 
@@ -492,8 +499,9 @@ Open publication of attacker templates has dual-use implications. The method fav
 
 \section{Conclusion}
 
-Evidence-driven generative development changes the durable unit of software from an implementation to a readable contract plus replayable evidence. Its Builder--Tester--Attacker architecture does not eliminate model error; it arranges model creativity behind enforceable, independently authored, and real-environment checks. The differential gate provides a concrete test for one class of prompt-injection bypass, while the constrained DSL, sandbox, static policy, Demo, screenshots, and human review provide distinct layers. The method's strongest claim is procedural: failures should become reproducible evidence and appropriately scoped constraints, while generated code remains replaceable. Controlled multi-capability evaluation is the next step toward measuring when this process is more reliable, safe, and economical than code-centric or one-shot LLM development.
+Evidence-driven generative development changes the durable unit of software from one implementation to a readable behavioral contract plus replayable evidence. Generated code becomes a replaceable candidate: it may vary, fail, be repaired, or be discarded without changing the product's durable identity. Builder, Tester, and Attacker roles are one mechanism for placing generation behind independently authored, enforceable, and real-environment checks; they are not substitutes for those checks. The differential gate probes one prompt-injection failure boundary, while the constrained DSL, trusted Runner, sandbox policy, Demo, screenshots, and human review provide distinct evidence layers. The method's strongest claim is procedural and falsifiable: reproduced failures should improve the smallest justified durable artifact, and a replacement implementation should earn acceptance by replaying the complete record against its own final hash. Controlled multi-capability evaluation is the next step toward determining when this contract-and-evidence-centered process is more reliable, safe, maintainable, and economical than retaining generated code or using one-shot generation.
 
+\clearpage
 \section*{Artifact Availability}
 
 The paper source, BibTeX database, and reproducible build instructions are available at
