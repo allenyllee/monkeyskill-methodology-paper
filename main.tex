@@ -7,6 +7,7 @@
 \usepackage{microtype}
 \usepackage{booktabs}
 \usepackage{array}
+\usepackage{tabularx}
 \usepackage{enumitem}
 \usepackage{float}
 \usepackage{xspace}
@@ -58,6 +59,8 @@
 \newcommand{\method}{\textsc{EDGD}\xspace}
 \newcommand{\mskill}{\textsc{MSkill}\xspace}
 \newcommand{\testspec}{\textsc{TestSpec}\xspace}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 
 \title{Evidence-Driven Generative Development:\\
 A Closed-Loop Method for Building and Validating LLM-Generated Software}
@@ -109,6 +112,74 @@ The central design tension is that a strict implementation recipe improves repea
   \item \textbf{Validated implementation constraints:} mechanisms or ordering constraints retained only after repeated evidence shows they are necessary for this specific capability.
   \item \textbf{Free implementation detail:} algorithms, data structures, naming, and organization remain Builder choices.
 \end{enumerate}
+
+\section{Related Work}
+
+\paragraph{Multi-agent software engineering.}
+ChatDev and MetaGPT organize specialized language-model roles into software-development
+workflows, while MAGIS and SWE-agent target repository-level issue resolution and tool use
+\citep{qian2023chatdev,hong2023metagpt,tao2024magis,yang2024sweagent}. AgentCoder is the
+closest role-level precedent: a programmer iterates from feedback produced by a test designer
+and test executor \citep{huang2023agentcoder}. These systems establish that specialization,
+execution, and feedback can improve generation. Their usual durable object, however, remains
+the generated repository or patch. \method instead asks whether a contract-and-evidence
+package can regenerate a replacement without inheriting that implementation.
+
+\paragraph{Test-driven intent and generated tests.}
+TiCoder partially formalizes ambiguous natural-language intent through user-reviewed tests
+\citep{fakhoury2024ticoder}. Otter generates tests from issues before a patch exists and uses
+them to validate software-engineering agents \citep{ahmed2025otter}. TestGen-LLM improves
+existing human-written tests and filters generated additions through deterministic quality
+gates \citep{alshahwan2024testgen}. These works motivate tests as specifications and external
+filters for model output. \method differs by retaining Demo-derived criteria and two
+independently authored suites in one non-executable DSL, then binding all post-generation
+evidence to the candidate hash.
+
+\paragraph{Skills, real environments, and injection resistance.}
+SWE-Skills-Bench evaluates whether procedural skill packages improve real repository tasks
+under deterministic acceptance tests \citep{han2026sweskills}. OSWorld demonstrates the
+importance of execution-based evaluation in real graphical environments
+\citep{xie2024osworld}. At the model layer, the Instruction Hierarchy trains models to obey
+privilege ordering \citep{wallace2024instruction}; multi-agent prompt-injection defenses use
+specialized reviewing agents \citep{hossain2025defense}. \method complements rather than
+replaces these approaches: it treats an entire human-readable capability contract as untrusted,
+inserts a trusted known-reject mutation, and requires an original-allow/poisoned-reject pair
+before generation.
+
+Table~\ref{tab:related-work} compares the surveyed systems on the dimensions central to this
+paper. ``Partial'' means that a work provides the ingredient for a narrower task but does not
+make it the durable acceptance record for repeated end-to-end regeneration.
+
+\begin{table}[H]
+\centering
+\caption{Comparison with representative related work.}
+\label{tab:related-work}
+\scriptsize
+\begin{tabularx}{\textwidth}{@{}L{24mm}L{18mm}L{20mm}L{18mm}L{17mm}Y@{}}
+\toprule
+Work & Replaceable implementation & Independent test author & Injection challenge & Real UI evidence & Primary focus / difference from \method \\
+\midrule
+ChatDev; MetaGPT & No & Partial & No & No & Collaborative role pipelines for producing software artifacts. \\
+MAGIS; SWE-agent & No & No & No & No & Repairing retained repositories or patches with agent tool use. \\
+AgentCoder & No & Yes & No & No & Programmer--test-designer--executor iteration; closest role topology. \\
+TiCoder & No & User-mediated & No & No & Interactive test-based clarification of natural-language intent. \\
+Otter & No & Yes & No & No & Tests generated from issues to validate a future patch. \\
+TestGen-LLM & No & Partial & No & No & Filtered improvement of existing human-written unit tests. \\
+SWE-Skills-Bench & No & External criteria & No & No & Paired measurement of procedural skill utility on repositories. \\
+OSWorld & N/A & External evaluator & No & Yes & Reproducible execution-based evaluation in real computer environments. \\
+Instruction Hierarchy & N/A & No & Yes & No & Model training for privileged-instruction ordering. \\
+Multi-agent PI defense & N/A & Reviewing agents & Yes & No & Detection and mitigation of prompt injection at inference time. \\
+\method{} & Yes & Yes, bounded DSL & Differential canary & Final hash & Durable contract, evolving criteria, replayable cross-layer evidence. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+No individual ingredient above is claimed as new. The proposed contribution is their
+contract-and-evidence-centered composition: replaceability as a maintenance objective,
+Demo-first criterion evolution, isolated public and independent specifications, a
+pre-generation differential injection gate, bounded repair, and final-hash real-environment
+evidence. The evaluation protocol is designed to test whether this composition adds value
+beyond its constituent techniques.
 
 \section{Durable Artifacts}
 

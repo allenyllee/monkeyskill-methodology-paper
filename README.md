@@ -10,6 +10,12 @@ implementation. Executable Demos, criteria, constrained test specifications, and
 final-hash browser evidence persist while LLM-generated implementations remain
 replaceable candidates.
 
+The Related Work section compares EDGD with representative multi-agent software
+engineering, test-driven intent formalization, generated-test, agent-skill evaluation,
+real-environment, and prompt-injection-defense systems. It treats these components as
+prior art and locates the paper's contribution in their contract-and-evidence-centered
+composition.
+
 It includes separate architecture diagrams for the per-installation security pipeline and
 the longer-term Demo-first development and criterion-evolution loop, plus an explicit
 role-interaction diagram for Tester A, Attacker, Tester B, Builder, Runner, and trusted
@@ -17,7 +23,7 @@ orchestration. The reference case study also records the current three-run conve
 threshold, repair accounting, final-evidence requirements, and observed attempt counts.
 
 A compiled PDF of the current draft is attached to the
-[`v0.5.0-draft` prerelease](https://github.com/allenyllee/monkeyskill-methodology-paper/releases/tag/v0.5.0-draft).
+[`v0.6.0-draft` prerelease](https://github.com/allenyllee/monkeyskill-methodology-paper/releases/tag/v0.6.0-draft).
 
 ## Build
 
