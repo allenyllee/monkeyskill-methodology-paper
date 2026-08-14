@@ -35,7 +35,7 @@ The title page and a dedicated disclosure section identify the use of OpenAI Cod
 sole accountable author.
 
 A compiled PDF of the current draft is attached to the
-[`v0.10.2-draft` prerelease](https://github.com/allenyllee/monkeyskill-methodology-paper/releases/tag/v0.10.2-draft).
+[`v0.10.3-draft` prerelease](https://github.com/allenyllee/monkeyskill-methodology-paper/releases/tag/v0.10.3-draft).
 
 ## Build
 
