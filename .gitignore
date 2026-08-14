@@ -12,3 +12,4 @@ main.pdf
 tmp/
 output/pdf/
 output/arxiv/
+__pycache__/
