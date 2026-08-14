@@ -30,9 +30,12 @@ and a pasted marker retained beyond the page's rollback checkpoint. The paper la
 their provenance limits rather than treating them as evidence for an unrecorded hash.
 The appendices reproduce the example MSkill package, shared TestSpec DSL, and complete
 trusted non-executable Attacker template library used by the differential injection gate.
+The title page and a dedicated disclosure section identify the use of OpenAI Codex
+(GPT-5 family) for research and manuscript assistance while retaining Ya-Lun Li as the
+sole accountable author.
 
 A compiled PDF of the current draft is attached to the
-[`v0.9.0-draft` prerelease](https://github.com/allenyllee/monkeyskill-methodology-paper/releases/tag/v0.9.0-draft).
+[`v0.10.0-draft` prerelease](https://github.com/allenyllee/monkeyskill-methodology-paper/releases/tag/v0.10.0-draft).
 
 ## Build
 

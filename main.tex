@@ -65,7 +65,10 @@
 
 \title{Evidence-Driven Generative Development:\\
 A Closed-Loop Method for Building and Validating LLM-Generated Software}
-\author{Ya-Lun Li\\Independent Researcher\\\href{mailto:allen7575@gmail.com}{allen7575@gmail.com}}
+\author{Ya-Lun Li\\
+Independent Researcher\\
+\href{mailto:allen7575@gmail.com}{allen7575@gmail.com}\\[0.6em]
+\small\textit{AI-assisted preparation: OpenAI Codex (GPT-5 family)}}
 \date{August 2026}
 
 \begin{document}
@@ -658,6 +661,25 @@ Because repeated sampling alone improves pass rates on code tasks \citep{chen202
 Adversarial samples remain declarative and non-executable. URLs, sensitive-data categories, and external-communication instructions are test data; no component is authorized to contact them. Prefer operator-controlled inert sinks and verify that the pipeline structurally stops before any network-capable candidate exists. Logs should avoid retaining user content, clipboard values, secrets, or generated attack payloads beyond what reproducibility requires.
 
 Open publication of attacker templates has dual-use implications. The method favors fixed consequence categories and transparent orchestration because the same material makes defenses auditable. Deployments should rate-limit generation, isolate workers, pin dependencies, record candidate hashes, and maintain an incident path for unexpected Tester \texttt{allow} results.
+
+\subsection*{Authorship and AI-assistance disclosure}
+
+The human author is Ya-Lun Li. OpenAI Codex, operating with a GPT-5-family coding
+model, assisted with literature discovery, drafting, LaTeX editing, diagram construction,
+repository operations, and browser and PDF quality assurance. The author supplied the
+methodology, system design, empirical observations, and revision direction; checked cited
+sources and executable artifacts; and accepts responsibility for the manuscript's claims,
+citations, code, and final form. Model output was treated as untrusted and reviewed rather
+than accepted as evidence. The authoring interface did not expose a stable backend snapshot
+identifier, so this disclosure reports the model family rather than asserting an
+unrecoverable model version.
+
+Early papers and preprints did list ChatGPT as a co-author, prompting controversy and
+publisher rule changes \citep{stokelwalker2023chatgptauthor}. Current guidance generally
+distinguishes transparent AI assistance from authorship: AI tools should be disclosed with
+their purpose but should not be listed as authors because they cannot assume responsibility
+for accuracy, integrity, and originality \citep{icmje2026ai}. Accordingly, the title-page
+line above is an assistance disclosure, not an attribution of authorship to the model.
 
 \section{Conclusion}
 
