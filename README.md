@@ -70,6 +70,7 @@ latexmk -C
 - `appendix/` — manifest, MSkill, TestSpec, and grammar examples included by the paper
 - `Makefile` — convenience build targets
 - `.latexmkrc` — reproducible `latexmk` defaults
+- `scripts/package-arxiv.py` — deterministic, portable arXiv source packager
 
 ## arXiv preparation
 
@@ -79,7 +80,29 @@ The source intentionally uses portable `pdflatex` packages and BibTeX. Before su
 2. Complete the preregistered multi-capability evaluation described in the paper.
 3. Replace engineering-observation language with measured results only where supported.
 4. Run `latexmk -C`, rebuild, and inspect every page of `main.pdf`.
-5. Upload `main.tex`, `references.bib`, and any required generated `.bbl`/figures according to the current arXiv submission instructions.
+5. Package and validate the source archive:
+
+   ```sh
+   python3 scripts/package-arxiv.py
+   ```
+
+   On Windows PowerShell:
+
+   ```powershell
+   python scripts/package-arxiv.py
+   ```
+
+   Alternatively, `make arxiv` builds the paper first and then packages it. The
+   default output is `output/arxiv/EDGD-arxiv-source.zip`. Use `--output PATH`
+   to choose a versioned filename.
+6. Upload the generated ZIP according to the current arXiv submission instructions.
+
+The packager deliberately includes only `main.tex`, `main.bbl`, `references.bib`,
+and regular files under `appendix/`. It excludes PDFs and LaTeX build artifacts,
+stores every archive path with POSIX `/` separators, uses deterministic ordering
+and timestamps, verifies the ZIP manifest and integrity, and prints its SHA-256
+digest. It fails if a required source file is missing; run `latexmk` first when
+`main.bbl` has not yet been generated.
 
 ## Related implementation
 
