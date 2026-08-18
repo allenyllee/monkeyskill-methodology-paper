@@ -213,8 +213,8 @@ The architecture operationalizes the durable-artifact model; it is not a claim t
 \begin{figure*}[t]
 \centering
 \begin{tikzpicture}[
-  node distance=5mm and 6mm,
-  box/.style={draw,rounded corners,align=center,minimum height=9mm,text width=25mm,font=\scriptsize},
+  node distance=5mm and 4mm,
+  box/.style={draw,rounded corners,align=center,minimum height=9mm,text width=21mm,font=\scriptsize},
   arrow/.style={-{Latex[length=1.8mm]},thick},
   stop/.style={box,draw=attackred,text=attackred},
   good/.style={box,draw=testergreen,text=testergreen},
@@ -224,35 +224,38 @@ The architecture operationalizes the durable-artifact model; it is not a claim t
 \node[box,draw=testergreen,right=of contract] (ta) {Fresh Tester A\\original review};
 \node[box,draw=attackred,right=of ta] (attacker) {Attacker plan\\trusted poisoning};
 \node[box,draw=testergreen,right=of attacker] (tb) {Fresh Tester B\\blind review};
-\node[stop,above=6mm of attacker] (blocked) {Any other verdict matrix:\\fail closed};
+\node[stop,text width=34mm,above=7mm of attacker] (blocked)
+  {Invalid verdict matrix:\\A rejects/unverifiable, or\\B allows/unverifiable};
 
-\node[build,below=14mm of contract] (builder) {Builder: both modes\\+ public \testspec};
+\node[build,below=15mm of contract] (builder) {Builder: both modes\\+ public \testspec};
 \node[box,right=of builder] (scan) {Schema, policy,\\parse, capability scan};
 \node[box,right=of scan] (public) {Public \testspec\\sandbox Runner};
 \node[box,right=of public] (developer) {Developer Conformance\\real Chromium/CDP};
 \node[box,right=of developer] (independent) {Independent \testspec\\sandbox Runner};
+\node[box,right=of independent] (approval) {Approval record\\counts + final hash};
 
-\node[box,draw=attackred,below=9mm of scan] (repair) {Bounded diagnostic\\complete replacement};
-\node[box,below=8mm of independent] (approval) {Approval record\\counts + final hash};
-\node[box,left=of approval] (preinstall) {Pre-install replay\\independent + CDP};
+\node[box,draw=attackred,below=11mm of developer] (failure) {Any evidence failure\\fail closed};
+\node[box,draw=attackred,left=18mm of failure] (repair) {Bounded diagnostic\\complete replacement};
+\node[box,below=11mm of approval] (preinstall) {Pre-install replay\\independent + CDP};
 \node[good,left=of preinstall] (browser) {Install final hash\\real Demo evidence};
 
 \draw[arrow] (contract)--(ta);
 \draw[arrow] (ta)--node[above,font=\tiny]{allow}(attacker);
-\draw[arrow] (ta.north) |- node[pos=.35,left,font=\tiny]{reject / unverifiable} (blocked.west);
+\draw[arrow] (ta.north) to[out=90,in=180] (blocked.west);
 \draw[arrow] (attacker)--(tb);
-\draw[arrow] (tb.north) |- node[pos=.35,right,font=\tiny]{allow / unverifiable} (blocked.east);
-\draw[arrow] (tb.south) -- ++(0,-5mm) -| node[pos=.25,below,font=\tiny]{reject; release original only} (builder.north);
+\draw[arrow] (tb.north) to[out=90,in=0] (blocked.east);
+\draw[arrow] (tb.south) -- ++(0,-6mm) -| node[pos=.25,below,font=\tiny]{reject; release original only} (builder.north);
 
 \draw[arrow] (builder)--(scan);
 \draw[arrow] (scan)--(public);
 \draw[arrow] (public)--(developer);
 \draw[arrow] (developer)--(independent);
-\draw[arrow] (public.south) |- (repair.east);
-\draw[arrow] (developer.south) |- (repair.east);
-\draw[arrow] (independent.south) -- ++(0,-3mm) -| (repair.east);
-\draw[arrow] (repair.west) -| node[pos=.35,left,font=\tiny]{new hash} (builder.south);
 \draw[arrow] (independent)--(approval);
+\draw[arrow,draw=attackred] (public.south) to[out=-90,in=150] (failure.north west);
+\draw[arrow,draw=attackred] (developer.south)--(failure.north);
+\draw[arrow,draw=attackred] (independent.south) to[out=-90,in=30] (failure.north east);
+\draw[arrow,draw=attackred] (failure)--(repair);
+\draw[arrow,draw=attackred] (repair.west) -- ++(-5mm,0) |- node[pos=.25,left,font=\tiny]{new hash} (builder.south);
 \draw[arrow] (approval)--(preinstall);
 \draw[arrow] (preinstall)--(browser);
 \end{tikzpicture}
