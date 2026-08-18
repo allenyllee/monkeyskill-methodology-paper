@@ -19,8 +19,14 @@ composition.
 It includes separate architecture diagrams for the per-installation security pipeline and
 the longer-term Demo-first development and criterion-evolution loop, plus an explicit
 role-interaction diagram for Tester A, Attacker, Tester B, Builder, Runner, and trusted
-orchestration. The reference case study also records the current three-run convergence
-threshold, repair accounting, final-evidence requirements, and observed attempt counts.
+orchestration. The installation diagram distinguishes Builder-authored Public TestSpec,
+fixed Developer Conformance in isolated Chromium/CDP, and fresh Independent TestSpec,
+then shows approval, pre-install replay, installation, and final published-Demo evidence.
+The reference case study records the current three-run convergence threshold, repair
+accounting, final-evidence requirements, and observed attempt counts. It also reports a
+fresh real-browser run whose original/poisoned verdicts were allow/reject, whose fixed
+Developer Conformance suite passed 7/7, and whose installed Demo was manually replayed
+against the approved final hash.
 An additional versioned repair diagram makes Builder's iterative role explicit: Builder
 infers a repair from public or bounded independent diagnostics and synthesizes a complete
 replacement, while trusted Runner checks remain the acceptance authority.

@@ -75,7 +75,7 @@ Independent Researcher\\
 \maketitle
 
 \begin{abstract}
-Large language models can generate useful software from natural-language requests, but a generated implementation is neither a durable specification nor trustworthy evidence of its own correctness. We present \emph{evidence-driven generative development} (\method), a software-development method that makes human-readable behavioral contracts, executable demonstrations, constrained test specifications, and replayable evidence the durable product record while treating each generated implementation as a replaceable candidate. The goal is to preserve implementation freedom without giving up repeatability, safety, or auditability. A candidate advances through isolated generation and independent specification, a bounded non-executable test DSL and trusted Runner, an adversarial differential review of the untrusted contract, and final-hash installation, real interaction, and screenshot-backed visual checks. Reproducible failures evolve the smallest justified durable layer---shared framework, capability contract, or regression evidence---before the complete loop is replayed. A Builder, independent Testers, and a bounded Attacker are mechanisms for enforcing these evidence boundaries rather than the contribution by themselves. We describe the durable-artifact model, criterion-evolution discipline, security and repair architecture, convergence protocol, and a browser-extension case study. This methods and systems report defines falsifiable evaluation protocols and reports engineering observations; it does not claim that finite testing or model review proves semantic safety. Reference implementation and artifacts: \url{https://github.com/allenyllee/monkeyskill}.
+Large language models can generate useful software from natural-language requests, but a generated implementation is neither a durable specification nor trustworthy evidence of its own correctness. We present \emph{evidence-driven generative development} (\method), a software-development method that makes human-readable behavioral contracts, executable demonstrations, constrained test specifications, and replayable evidence the durable product record while treating each generated implementation as a replaceable candidate. The goal is to preserve implementation freedom without giving up repeatability, safety, or auditability. A candidate advances through a pre-generation differential security gate, isolated generation, three distinct test sources, bounded repair, explicit approval, pre-install replay, and final-hash real interaction and visual checks. Fixed Developer Conformance runs in an isolated real Chromium viewport so layout-dependent regression memory does not inherit the limitations of a hidden offscreen host. Reproducible failures evolve the smallest justified durable layer---shared framework, capability contract, or regression evidence---before the complete loop is replayed. A Builder, independent Testers, and a bounded Attacker are mechanisms for enforcing these evidence boundaries rather than the contribution by themselves. We describe the durable-artifact model, criterion-evolution discipline, security and repair architecture, convergence protocol, and a browser-extension case study. This methods and systems report defines falsifiable evaluation protocols and reports engineering observations; it does not claim that finite testing or model review proves semantic safety. Reference implementation and artifacts: \url{https://github.com/allenyllee/monkeyskill}.
 \end{abstract}
 
 \section{Introduction}
@@ -208,49 +208,58 @@ This split allows multiple implementations to satisfy one contract while keeping
 
 \section{Closed-Loop Architecture}
 
-The architecture operationalizes the durable-artifact model; it is not a claim that human-named agent roles are intrinsically reliable. Figure~\ref{fig:pipeline} shows one installation attempt. Tester A reviews the original contract as untrusted data. Only an \texttt{allow} verdict advances to the Attacker. The trusted orchestrator uses the Attacker's allowlisted plan to construct a poisoned variant. Fresh Tester B sees only that variant and is not told the expected answer. Only the pair \texttt{allow}/\texttt{reject} releases the original contract---never the poisoned copy---to Builder.
+The architecture operationalizes the durable-artifact model; it is not a claim that human-named agent roles are intrinsically reliable. Figure~\ref{fig:pipeline} shows one successful installation attempt, including the evidence and repair stages that follow the security gate. Tester A reviews the original contract as untrusted data. Only an \texttt{allow} verdict advances to the Attacker. The trusted orchestrator uses the Attacker's allowlisted plan to construct a poisoned variant. Fresh Tester B sees only that variant and is not told the expected answer. Only the pair \texttt{allow}/\texttt{reject} releases the original contract---never the poisoned copy---to Builder.
 
 \begin{figure*}[t]
 \centering
 \begin{tikzpicture}[
-  node distance=6mm and 8mm,
-  box/.style={draw,rounded corners,align=center,minimum height=10mm,minimum width=25mm,font=\small},
-  decision/.style={draw,diamond,aspect=2.1,align=center,font=\small,inner sep=1.5pt},
-  arrow/.style={-{Latex[length=2mm]},thick},
+  node distance=5mm and 6mm,
+  box/.style={draw,rounded corners,align=center,minimum height=9mm,text width=25mm,font=\scriptsize},
+  arrow/.style={-{Latex[length=1.8mm]},thick},
   stop/.style={box,draw=attackred,text=attackred},
   good/.style={box,draw=testergreen,text=testergreen},
   build/.style={box,draw=builderblue,text=builderblue}
 ]
-\node[box] (contract) {Original readable\\contract + Demo};
-\node[box,draw=testergreen,right=of contract] (ta) {Fresh Tester A\\security review};
-\node[decision,right=of ta] (ga) {allow?};
-\node[stop,right=of ga] (stopa) {Fail closed};
+\node[box] (contract) {Readable MSkill\\+ fixed conformance};
+\node[box,draw=testergreen,right=of contract] (ta) {Fresh Tester A\\original review};
+\node[box,draw=attackred,right=of ta] (attacker) {Attacker plan\\trusted poisoning};
+\node[box,draw=testergreen,right=of attacker] (tb) {Fresh Tester B\\blind review};
+\node[stop,above=6mm of attacker] (blocked) {Any other verdict matrix:\\fail closed};
 
-\node[box,draw=attackred,below=9mm of ga] (attacker) {Bounded Attacker\\allowlisted plan};
-\node[box,left=of attacker] (poison) {Trusted template\\poisoned copy};
-\node[box,draw=testergreen,left=of poison] (tb) {Fresh Tester B\\blind review};
-\node[decision,left=of tb] (gb) {reject?};
+\node[build,below=14mm of contract] (builder) {Builder: both modes\\+ public \testspec};
+\node[box,right=of builder] (scan) {Schema, policy,\\parse, capability scan};
+\node[box,right=of scan] (public) {Public \testspec\\sandbox Runner};
+\node[box,right=of public] (developer) {Developer Conformance\\real Chromium/CDP};
+\node[box,right=of developer] (independent) {Independent \testspec\\sandbox Runner};
 
-\node[build,below=9mm of gb] (builder) {Builder: candidate\\+ public \testspec};
-\node[box,right=of builder] (runner) {Trusted Runner\\public + independent};
-\node[box,right=of runner] (install) {Approval + sandboxed\\installation};
-\node[good,right=of install] (browser) {Real Demo interaction\\+ screenshots};
+\node[box,draw=attackred,below=9mm of scan] (repair) {Bounded diagnostic\\complete replacement};
+\node[box,below=8mm of independent] (approval) {Approval record\\counts + final hash};
+\node[box,left=of approval] (preinstall) {Pre-install replay\\independent + CDP};
+\node[good,left=of preinstall] (browser) {Install final hash\\real Demo evidence};
 
 \draw[arrow] (contract)--(ta);
-\draw[arrow] (ta)--(ga);
-\draw[arrow] (ga)--node[above,font=\scriptsize]{no}(stopa);
-\draw[arrow] (ga)--node[right,font=\scriptsize]{yes}(attacker);
-\draw[arrow] (attacker)--(poison);
-\draw[arrow] (poison)--(tb);
-\draw[arrow] (tb)--(gb);
-\draw[arrow] (gb)--node[right,font=\scriptsize]{yes}(builder);
-\draw[arrow] (builder)--(runner);
-\draw[arrow] (runner)--(install);
-\draw[arrow] (install)--(browser);
-\node[below=3mm of runner,font=\scriptsize,text=gategray,align=center] (evolve)
-  {A reproducible browser failure evolves the contract and restarts the loop.};
+\draw[arrow] (ta)--node[above,font=\tiny]{allow}(attacker);
+\draw[arrow] (ta.north) |- node[pos=.35,left,font=\tiny]{reject / unverifiable} (blocked.west);
+\draw[arrow] (attacker)--(tb);
+\draw[arrow] (tb.north) |- node[pos=.35,right,font=\tiny]{allow / unverifiable} (blocked.east);
+\draw[arrow] (tb.south) -- ++(0,-5mm) -| node[pos=.25,below,font=\tiny]{reject; release original only} (builder.north);
+
+\draw[arrow] (builder)--(scan);
+\draw[arrow] (scan)--(public);
+\draw[arrow] (public)--(developer);
+\draw[arrow] (developer)--(independent);
+\draw[arrow] (public.south) |- (repair.east);
+\draw[arrow] (developer.south) |- (repair.east);
+\draw[arrow] (independent.south) -- ++(0,-3mm) -| (repair.east);
+\draw[arrow] (repair.west) -| node[pos=.35,left,font=\tiny]{new hash} (builder.south);
+\draw[arrow] (independent)--(approval);
+\draw[arrow] (approval)--(preinstall);
+\draw[arrow] (preinstall)--(browser);
 \end{tikzpicture}
-\caption{Mainline differential gate and evidence loop. Only an original-allow/poisoned-reject pair reaches Builder.}
+\caption{Verified successful installation mainline. Only an original-allow/poisoned-reject
+pair reaches Builder. Public, fixed real-browser Developer Conformance, and Independent
+suites are separate evidence sources. Any failure creates a complete replacement and new
+hash; approval is followed by pre-install replay and real-Demo evidence.}
 \label{fig:pipeline}
 \end{figure*}
 
@@ -287,8 +296,8 @@ bounded diagnostics rather than the independent suite itself.
 \node[role,draw=attackred,above=13mm of gate] (attacker) {Bounded Attacker\\allowlisted plan};
 \node[role,draw=testergreen,right=22mm of gate] (tb) {Fresh Tester B\\poisoned review};
 \node[role,draw=builderblue,below left=19mm and 12mm of gate] (builder) {Builder\\candidate + public \testspec};
-\node[role,below right=19mm and 12mm of gate] (runner) {Trusted Runner\\public + independent};
-\node[role,draw=testergreen,below=13mm of runner] (browser) {Install final hash\\Demo + screenshots};
+\node[role,below right=19mm and 12mm of gate] (runner) {Trusted evidence stack\\public + CDP conformance\\+ independent};
+\node[role,draw=testergreen,below=13mm of runner] (browser) {Approve + pre-install replay\\final-hash Demo evidence};
 
 \draw[flow] (gate) to[bend left=12] node[note,above]{original\\contract} (ta);
 \draw[flow] (ta) to[bend left=12] node[note,below]{verdict +\\independent \testspec} (gate);
@@ -300,7 +309,7 @@ bounded diagnostics rather than the independent suite itself.
 \draw[flow] (gate) -- node[note,right]{independent\\\testspec} (runner);
 \draw[flow] (builder) to[bend left=12] node[note,above]{complete candidate\\+ public \testspec} (runner);
 \draw[flow] (runner) to[bend left=12] node[note,below]{bounded diagnostics} (builder);
-\draw[flow] (runner) -- node[note,right]{approved final hash} (browser);
+\draw[flow] (runner) -- node[note,right]{zero-fail record;\\replay before install} (browser);
 \end{tikzpicture}
 \caption{Role interaction and information flow. All cross-role communication is mediated
 by trusted orchestration; the poisoned contract never reaches Builder, and the independent
@@ -366,6 +375,15 @@ credentials, collected data, or concrete network destination.
 \section{Constrained Testing and Runtime Enforcement}
 
 Builder and Tester use the same \testspec{} DSL format, avoiding the misleading impression that public and independent suites are different languages. The distinction is authorship and visibility. A \testspec{} can declare fixtures, permitted actions, checkpoints, and assertions, but cannot contain JavaScript, arbitrary selectors, URLs, network requests, or executable expressions.
+
+The successful mainline uses three test sources with deliberately different authority.
+Builder authors the Public TestSpec and may receive its detailed traces. Developer
+Conformance is versioned, developer-supplied regression memory, validated against criteria
+already present in the readable contract; it may block but cannot authorize, add a
+capability, or override a security verdict. Fresh Tester A authors the Independent TestSpec,
+which remains hidden from Builder. Developer and Independent failures expose only a bounded
+criterion, mode, and category tuple. Thus a developer-authored test can demonstrate that
+Builder failed to implement reviewed behavior, but it cannot make unreviewed behavior safe.
 
 A complete behavior-plus-policy example appears in Appendix~\ref{app:testspec}, and
 Appendix~\ref{app:grammar} summarizes the grammar and representative allowlists.
@@ -516,6 +534,24 @@ For browser capabilities, the candidate is installed on its registered origin, e
 
 Evidence is attached to a candidate hash. A screenshot from one generated implementation cannot be applied retroactively to another. Ambiguous checks remain \emph{inconclusive}; they are neither silently passed nor automatically treated as functional failures.
 
+Layout-dependent regression tests also require a capable execution environment. In an
+August 2026 investigation, the Extension's hidden validation page exposed a $0\times0$
+viewport and \texttt{elementFromPoint} returned \texttt{null}; the fixed suite therefore
+reported 4/7 and repeatedly sent an otherwise viable candidate back for overlay repair. The
+trusted local backend now serializes requests to an authenticated endpoint, launches an
+isolated Chromium profile, blocks candidate network traffic outside the local fixture, and
+self-checks viewport, hit-testing, focus, shortcut, and drag capabilities. The same fixed
+Developer Conformance is executed during generation and again immediately before install.
+Detailed fixtures and traces remain inside trusted orchestration; Builder receives only the
+bounded diagnostic tuple.
+
+This change separates an infrastructure failure from a candidate failure. The earlier
+candidate passed all seven fixed checks in the CDP viewport, while a separate real-pointer
+probe still found a genuine Standard-mode selection defect. A blocked baseline and a
+known-capable reference were therefore necessary before attributing the discrepancy. The
+result does not make browser execution a universal oracle; it establishes only that this
+backend can exercise the declared regression workflow more faithfully than the hidden host.
+
 Figure~\ref{fig:demo-evidence} shows the form of evidence produced by a real replay of
 the published Restore Right Click Demo on 2026-08-14. Panel~(a) was captured after an
 actual pointer drag and release: the selected text remains visibly highlighted rather
@@ -590,7 +626,8 @@ The operational settings used for the browser case study are:
   \item[Freshness] Tester A, Attacker, Tester B, and Builder use new isolated contexts in every run. No role inherits another role's hidden inputs, outputs, or conversational state.
   \item[Security precondition] Tester A must allow the original contract and Tester B must reject the trusted poisoned copy. Every other matrix outcome stops before Builder.
   \item[Repair policy] Repairs continue until the complete corrected candidate and complete public suite pass all gates. Previously collected evidence is invalidated when the candidate hash changes.
-  \item[End-to-end evidence] Static policy, public and independent Runner checks, installation, real Demo interactions, delayed checkpoints, and required screenshots must all refer to the final hash. A Runner-level \emph{inconclusive} visual observation must be resolved by its designated browser evidence.
+  \item[Regression memory] Fixed Developer Conformance runs after the Public suite in an isolated Chromium/CDP viewport and is replayed immediately before installation. It has blocking but not authorizing authority; Builder receives only criterion/mode/category on failure.
+  \item[End-to-end evidence] Static policy, Public, Developer Conformance, and Independent checks, installation, real Demo interactions, delayed checkpoints, and required screenshots must all refer to the final hash. A Runner-level \emph{inconclusive} visual observation must be resolved by its designated browser evidence.
   \item[Streak reset] The consecutive-run count resets when a run cannot converge, violates the security matrix, or terminates with required evidence still failing, unresolved, or unverifiable. A local pre-submission defect that changes no external state may be corrected without failing the run, provided every preflight gate is rerun.
 \end{description}
 
@@ -613,6 +650,43 @@ Run & Tester A tests & Builder attempts & Repairs & Public P/I/F \quad Independe
 3 & 21 & 2 & 1 & 14/6/0 \quad 17/4/0 \\
 \midrule
 Total & 61 & 5 & 2 & 39/13/0 \quad 50/11/0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Verified real-browser mainline run}
+
+After replacing the hidden layout-dependent conformance host with the isolated CDP backend,
+we executed one fresh complete run on 2026-08-18. Tester A allowed the original contract and
+authored 32 independent tests. The bounded Attacker selected a trusted canary plan, and fresh
+Tester B rejected the poisoned variant with the expected injection-override, validation-bypass,
+hidden-behavior, undeclared-capability, sensitive-data-access, and external-communication
+categories. Only then did Builder receive the original contract.
+
+Builder's first complete candidate passed all zero-fail gates without repair. Table~\ref{tab:cdp-run}
+records the Store approval result. The four Public and four Independent inconclusive results
+remain distinct from passes; the CDP and subsequent Demo evidence do not rewrite sandbox
+observations. The Store recorded candidate hash \texttt{0a33209130eff97b}, the user approved
+installation, the pre-install CDP replay completed, and the user reported that all manual Demo
+checks passed. This is engineering evidence for one final hash, not a substitute for the
+three-run stability threshold or a multi-capability evaluation.
+
+\begin{table}[H]
+\centering
+\caption{Fresh successful run after real-browser Developer Conformance integration (2026-08-18).}
+\label{tab:cdp-run}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Evidence source & Pass & Inconclusive & Fail & Notes \\
+\midrule
+Public TestSpec & 21 & 4 & 0 & Builder-authored; 25 total \\
+Developer Conformance & 7 & 0 & 0 & isolated Chromium/CDP \\
+Independent TestSpec & 28 & 4 & 0 & Tester-authored; 32 total \\
+Differential security & 1 & 0 & 0 & original allow / poisoned reject \\
+Manual published Demo & 1 & 0 & 0 & operator-reported complete replay \\
+\midrule
+Builder attempts / repairs & \multicolumn{4}{l}{1 attempt / 0 repairs} \\
 \bottomrule
 \end{tabular}
 \end{table}
