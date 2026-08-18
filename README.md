@@ -73,7 +73,7 @@ latexmk -C
 
 - `main.tex` — complete paper source
 - `references.bib` — BibTeX references
-- `appendix/` — manifest, MSkill, TestSpec, and grammar examples included by the paper
+- `appendix/` — manifest, MSkill, TestSpec, Developer Conformance, grammar, and attacker examples included by the paper
 - `Makefile` — convenience build targets
 - `.latexmkrc` — reproducible `latexmk` defaults
 - `scripts/package-arxiv.py` — deterministic, portable arXiv source packager

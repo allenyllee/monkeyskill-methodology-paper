@@ -546,7 +546,9 @@ isolated Chromium profile, blocks candidate network traffic outside the local fi
 self-checks viewport, hit-testing, focus, shortcut, and drag capabilities. The same fixed
 Developer Conformance is executed during generation and again immediately before install.
 Detailed fixtures and traces remain inside trusted orchestration; Builder receives only the
-bounded diagnostic tuple.
+bounded diagnostic tuple. Appendix~\ref{app:developer-conformance} reproduces a
+schema-valid three-test excerpt of this fixed regression record, including real drag,
+hit-testing, and post-dismissal interaction workflows.
 
 This change separates an infrastructure failure from a candidate failure. The earlier
 candidate passed all seven fixed checks in the CDP viewport, while a separate real-pointer
@@ -808,6 +810,26 @@ Runner deny the manifest's forbidden network capability.
   caption={Behavior and policy tests in the shared TestSpec DSL.},
   label={lst:testspec}
 ]{appendix/example.testspec.json}
+
+\section{Developer Conformance Example}
+\label{app:developer-conformance}
+
+Listing~\ref{lst:developer-conformance} is a schema-valid excerpt of the fixed
+Developer Conformance record used by the Restore Right Click case study. The complete
+record contains seven regressions; this excerpt retains three representative workflows:
+selection recovery against modeled page blockers, pointer reachability through an
+author-positioned overlay, and selection dismissal followed by a fresh drag. The document
+uses the same non-executable TestSpec grammar as the other suites, but trusted orchestration
+runs it in isolated Chromium/CDP and replays it before installation. It may block a
+candidate and emit only criterion/mode/category diagnostics; passing it cannot authorize
+installation or override either Tester verdict.
+
+\lstinputlisting[
+  language=json,
+  basicstyle=\ttfamily\tiny,
+  caption={Three representative fixed Developer Conformance regressions.},
+  label={lst:developer-conformance}
+]{appendix/developer-conformance.json}
 
 \section{TestSpec Grammar and Capability Boundary}
 \label{app:grammar}
