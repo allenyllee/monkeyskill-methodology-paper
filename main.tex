@@ -75,7 +75,7 @@ Independent Researcher\\
 \maketitle
 
 \begin{abstract}
-Large language models can generate useful software from natural-language requests, but a generated implementation is neither a durable specification nor trustworthy evidence of its own correctness. We present \emph{evidence-driven generative development} (\method), a software-development method that makes human-readable behavioral contracts, executable demonstrations, constrained test specifications, and replayable evidence the durable product record while treating each generated implementation as a replaceable candidate. The goal is to preserve implementation freedom without giving up repeatability, safety, or auditability. A candidate advances through a pre-generation differential security gate, isolated generation, three distinct test sources, bounded repair, explicit approval, pre-install replay, and final-hash real interaction and visual checks. Fixed Developer Conformance runs in an isolated real Chromium viewport so layout-dependent regression memory does not inherit the limitations of a hidden offscreen host. Reproducible failures evolve the smallest justified durable layer---shared framework, capability contract, or regression evidence---before the complete loop is replayed. A Builder, independent Testers, and a bounded Attacker are mechanisms for enforcing these evidence boundaries rather than the contribution by themselves. We describe the durable-artifact model, criterion-evolution discipline, security and repair architecture, convergence protocol, and a browser-extension case study. This methods and systems report defines falsifiable evaluation protocols and reports engineering observations; it does not claim that finite testing or model review proves semantic safety. Reference implementation and artifacts: \url{https://github.com/allenyllee/monkeyskill}.
+Large language models can generate useful software from natural-language requests, but a generated implementation is neither a durable specification nor trustworthy evidence of its own correctness. We present \emph{evidence-driven generative development} (\method), a software-development method that makes human-readable behavioral contracts, executable demonstrations, constrained test specifications, and replayable evidence the durable product record while treating each generated implementation as a replaceable candidate. The goal is to preserve implementation freedom without giving up repeatability, safety, or auditability. A candidate advances through a pre-generation differential security gate, isolated generation, three distinct test sources, bounded repair, explicit approval, pre-install replay, and final-hash real interaction and visual checks. Fixed Developer Conformance runs in an isolated real Chromium viewport so layout-dependent regression memory does not inherit the limitations of a hidden offscreen host. The local evidence Runner may itself be generated from a versioned human-readable Bootstrap and independently meta-tested before atomic activation; the Bootstrap remains application-agnostic and hands application acceptance back to trusted orchestration. Reproducible failures evolve the smallest justified durable layer---shared framework, capability contract, or regression evidence---before the complete loop is replayed. A Builder, independent Testers, and a bounded Attacker are mechanisms for enforcing these evidence boundaries rather than the contribution by themselves. We describe the durable-artifact model, criterion-evolution discipline, security and repair architecture, convergence protocol, and a browser-extension case study. This methods and systems report defines falsifiable evaluation protocols and reports engineering observations; it does not claim that finite testing or model review proves semantic safety. Reference implementation and artifacts: \url{https://github.com/allenyllee/monkeyskill}.
 \end{abstract}
 
 \section{Introduction}
@@ -99,6 +99,7 @@ This paper's primary contribution is a development methodology; its multi-agent 
   \item a durable-artifact model in which readable contracts, Demos, criteria, bounded test specifications, and replayable evidence persist while generated implementations remain replaceable;
   \item an evidence-driven criterion-evolution discipline that promotes reproduced failures to the smallest justified durable layer while avoiding unnecessary implementation prescriptions;
   \item an auditable validation architecture combining isolated generation, independently authored tests in one constrained DSL, Builder-led iterative candidate repair from bounded feedback, and final-hash real-environment evidence;
+  \item a human-readable, application-agnostic Runner Bootstrap that permits a local agent to generate, independently meta-test, hash-pin, and atomically activate the enforcement backend instead of requiring a pretrusted external binary;
   \item a differential security gate that tests whether untrusted contract text can override a known rejection boundary before any candidate is generated; and
   \item a convergence and evaluation protocol for measuring repeated synthesis, repair cost, implementation diversity, safety, and end-to-end conformance.
 \end{itemize}
@@ -318,6 +319,43 @@ bounded diagnostics rather than the independent suite itself.
 by trusted orchestration; the poisoned contract never reaches Builder, and the independent
 \testspec{} never reaches Builder directly.}
 \label{fig:role-interaction}
+\end{figure}
+
+\subsection{Bootstrapping the local evidence Runner}
+
+The enforcement backend can itself be generated without making a particular application part
+of its specification. Figure~\ref{fig:runner-bootstrap} separates this one-time local bootstrap
+from later application-specific closed loops. A versioned readable Bootstrap supplies bounded
+protocol schemas, role boundaries, negative canaries, and meta-conformance---not Runner source.
+A fresh Runner Builder generates a provider for the current OS; a fresh Runner Tester checks
+positive execution, fail-closed behavior, cleanup, protocol purity, exact hashes, and diagnostic
+projection. Trusted orchestration atomically activates only the tested hash and preserves the
+previous passing version for rollback.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  node distance=5mm and 5mm,
+  boot/.style={draw,rounded corners,align=center,text width=25mm,minimum height=10mm,font=\scriptsize},
+  bootflow/.style={-{Latex[length=1.7mm]},thick}
+]
+\node[boot] (spec) {Readable Runner\\Bootstrap};
+\node[boot,draw=builderblue,right=of spec] (rb) {Fresh Runner\\Builder};
+\node[boot,draw=testergreen,right=of rb] (rt) {Fresh Runner Tester\\meta-conformance};
+\node[boot,right=of rt] (active) {Atomic activation\\tested hash + rollback};
+\node[boot,right=of active] (host) {Authenticated\\generic Host};
+\node[boot,below=10mm of host] (outer) {Invoking orchestrator\\chooses application};
+\draw[bootflow] (spec)--(rb);
+\draw[bootflow] (rb)--(rt);
+\draw[bootflow] (rt)--node[above,font=\tiny]{all pass}(active);
+\draw[bootflow] (active)--(host);
+\draw[bootflow] (host)--(outer);
+\draw[bootflow,draw=attackred] (rt.south) -- ++(0,-6mm) -| node[pos=.25,below,font=\tiny]{bounded diagnostic} (rb.south);
+\end{tikzpicture}
+\caption{Generated Runner bootstrap and trust boundary. The Runner MSkill ends at a generic
+Host handoff; it does not name, approve, install, or special-case the application subsequently
+selected by the outer orchestrator.}
+\label{fig:runner-bootstrap}
 \end{figure}
 
 \subsection{Security-review output}
@@ -546,7 +584,10 @@ isolated Chromium profile, blocks candidate network traffic outside the local fi
 self-checks viewport, hit-testing, focus, shortcut, and drag capabilities. The same fixed
 Developer Conformance is executed during generation and again immediately before install.
 Detailed fixtures and traces remain inside trusted orchestration; Builder receives only the
-bounded diagnostic tuple. Appendix~\ref{app:developer-conformance} reproduces a
+bounded criterion/mode/category/assertion-type tuple. Provider-specific codes such as
+\texttt{assertion-failed} must be projected into this fixed vocabulary from trusted test
+metadata; an empty projection is infrastructure failure, not candidate evidence.
+Appendix~\ref{app:developer-conformance} reproduces a
 schema-valid three-test excerpt of this fixed regression record, including real drag,
 hit-testing, and post-dismissal interaction workflows.
 
@@ -631,7 +672,7 @@ The operational settings used for the browser case study are:
   \item[Freshness] Tester A, Attacker, Tester B, and Builder use new isolated contexts in every run. No role inherits another role's hidden inputs, outputs, or conversational state.
   \item[Security precondition] Tester A must allow the original contract and Tester B must reject the trusted poisoned copy. Every other matrix outcome stops before Builder.
   \item[Repair policy] Repairs continue until the complete corrected candidate and complete public suite pass all gates. Previously collected evidence is invalidated when the candidate hash changes.
-  \item[Regression memory] Fixed Developer Conformance runs after the Public suite in an isolated Chromium/CDP viewport and is replayed immediately before installation. It has blocking but not authorizing authority; Builder receives only criterion/mode/category on failure.
+  \item[Regression memory] Fixed Developer Conformance runs after the Public suite in an isolated Chromium/CDP viewport and is replayed immediately before installation. It has blocking but not authorizing authority; Builder receives only criterion/mode/category/assertion type on failure.
   \item[End-to-end evidence] Static policy, Public, Developer Conformance, and Independent checks, installation, real Demo interactions, delayed checkpoints, and required screenshots must all refer to the final hash. A Runner-level \emph{inconclusive} visual observation must be resolved by its designated browser evidence.
   \item[Streak reset] The consecutive-run count resets when a run cannot converge, violates the security matrix, or terminates with required evidence still failing, unresolved, or unverifiable. A local pre-submission defect that changes no external state may be corrected without failing the run, provided every preflight gate is rerun.
 \end{description}
@@ -655,6 +696,42 @@ Run & Tester A tests & Builder attempts & Repairs & Public P/I/F \quad Independe
 3 & 21 & 2 & 1 & 14/6/0 \quad 17/4/0 \\
 \midrule
 Total & 61 & 5 & 2 & 39/13/0 \quad 50/11/0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Generated-Runner integration run}
+
+We also tested whether the CDP Runner could be generated locally rather than supplied as a
+prewritten component. A clean agent received only the versioned Bootstrap URL, verified the
+package hashes, generated a dependency-free Node/Edge-CDP Runner, and submitted it to a fresh
+meta-conformance Tester. The second Runner candidate passed 12/12 cases and 13/13 artifact-file
+hash checks, then was atomically activated at hash
+\texttt{784c5f01e030e3a8bbb86a08b40c64b98fa8e27cca05c7ddf42be66962148598}.
+
+The first application cycle exposed a generic Host defect: provider failures used only the
+generic assertion-failure code, which the bounded Builder-diagnostic allowlist correctly discarded,
+yielding an empty repair tuple. After adding a meta-conformance case for non-empty constrained
+projection, the next fresh application cycle delivered only criterion/mode/category/assertion
+types to Builder and converged without revealing fixtures or expected values. Table~\ref{tab:generated-runner}
+records the final Store approval and installation on 2026-08-19. The eight attempts measure
+candidate repair under the generated Runner; they are not Runner rebuild attempts.
+
+\begin{table}[H]
+\centering
+\caption{Fresh application run using the locally generated and independently meta-tested Runner.}
+\label{tab:generated-runner}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Evidence source & Pass & Inconclusive & Fail & Notes \\
+\midrule
+Public TestSpec & 24 & 5 & 0 & Builder-authored; 29 total \\
+Developer Conformance & 7 & 0 & 0 & generated Edge/CDP Runner \\
+Independent TestSpec & 32 & 4 & 0 & Tester-authored; 36 total \\
+Differential security & 1 & 0 & 0 & original allow / poisoned reject \\
+\midrule
+Builder attempts & \multicolumn{4}{l}{8; final candidate hash \texttt{c1aebddd93e678e0}; installed} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -821,7 +898,7 @@ selection recovery against modeled page blockers, pointer reachability through a
 author-positioned overlay, and selection dismissal followed by a fresh drag. The document
 uses the same non-executable TestSpec grammar as the other suites, but trusted orchestration
 runs it in isolated Chromium/CDP and replays it before installation. It may block a
-candidate and emit only criterion/mode/category diagnostics; passing it cannot authorize
+candidate and emit only criterion/mode/category/assertion-type diagnostics; passing it cannot authorize
 installation or override either Tester verdict.
 
 \lstinputlisting[
@@ -830,6 +907,21 @@ installation or override either Tester verdict.
   caption={Three representative fixed Developer Conformance regressions.},
   label={lst:developer-conformance}
 ]{appendix/developer-conformance.json}
+
+\section{Application-Agnostic Runner Bootstrap Excerpt}
+\label{app:runner-bootstrap}
+
+Listing~\ref{lst:runner-bootstrap} shows the key human-readable criteria used to generate the
+local Runner. The contract specifies transport, fail-closed behavior, independent validation,
+hash-pinned activation, safe diagnostic projection, and a generic orchestrator handoff. It
+deliberately contains no named application or MSkill acceptance scenario; the outer orchestrator
+selects those after the Runner has passed its own meta-conformance.
+
+\lstinputlisting[
+  basicstyle=\ttfamily\scriptsize,
+  caption={Human-readable, application-agnostic Runner Bootstrap excerpt.},
+  label={lst:runner-bootstrap}
+]{appendix/runner-bootstrap-mskill.txt}
 
 \section{TestSpec Grammar and Capability Boundary}
 \label{app:grammar}

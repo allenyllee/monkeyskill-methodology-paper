@@ -22,6 +22,9 @@ role-interaction diagram for Tester A, Attacker, Tester B, Builder, Runner, and 
 orchestration. The installation diagram distinguishes Builder-authored Public TestSpec,
 fixed Developer Conformance in isolated Chromium/CDP, and fresh Independent TestSpec,
 then shows approval, pre-install replay, installation, and final published-Demo evidence.
+It also includes a separate generated-Runner bootstrap diagram: a readable, versioned
+Bootstrap drives fresh Runner Builder/Tester roles, exact-hash atomic activation, and a generic
+Host handoff, while the outer orchestrator remains responsible for application-specific acceptance.
 The reference case study records the current three-run convergence threshold, repair
 accounting, final-evidence requirements, and observed attempt counts. It also reports a
 fresh real-browser run whose original/poisoned verdicts were allow/reject, whose fixed
@@ -74,6 +77,7 @@ latexmk -C
 - `main.tex` — complete paper source
 - `references.bib` — BibTeX references
 - `appendix/` — manifest, MSkill, TestSpec, Developer Conformance, grammar, and attacker examples included by the paper
+- `appendix/runner-bootstrap-mskill.txt` — application-agnostic generated Runner Bootstrap excerpt
 - `Makefile` — convenience build targets
 - `.latexmkrc` — reproducible `latexmk` defaults
 - `scripts/package-arxiv.py` — deterministic, portable arXiv source packager

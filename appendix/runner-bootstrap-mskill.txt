@@ -1,0 +1,33 @@
+# Build Your Own MonkeySkill Runner (excerpt)
+
+[criterion:generated-implementation]
+Generate the Runner during this installation. Keep its source available for
+human inspection; do not copy a prebuilt Runner implementation.
+
+[criterion:isolated-transport]
+Accept one bounded JSON request on standard input and return one bounded JSON
+response on standard output. Keep Agent and LLM credentials outside the Runner.
+
+[criterion:fail-closed]
+Malformed, oversized, unsupported, timed-out, inconclusive, or policy-violating
+requests must never be reported as pass. Tests may contact loopback only.
+
+[criterion:independent-validation]
+Use a fresh Builder and fresh Tester. The Tester runs fixed positive and negative
+meta-conformance without seeing Builder reasoning. Repair only from constrained
+diagnostics and rerun the complete suite.
+
+[criterion:atomic-install]
+Activate only the exact artifact hash that passed independent meta-conformance.
+Use a versioned user-scoped directory and preserve the prior passing version.
+
+[criterion:host-integration]
+Return the active artifact hash. Translate failures using only criterion, mode,
+assertion type, and a fixed category. Never forward provider messages, fixtures,
+actual or expected values, or repair instructions. A failing assertion must project
+to a non-empty schema-valid constrained diagnostic.
+
+[criterion:orchestrator-handoff]
+Expose a bounded authenticated Host and return capability/hash evidence to the
+invoking orchestrator. Remain application-agnostic: do not name, special-case,
+approve, install, or execute a particular MSkill or product workflow.
