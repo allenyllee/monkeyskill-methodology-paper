@@ -448,11 +448,16 @@ Independent TestSpec is never revealed. Builder must infer a root cause from thi
 feedback and return the complete candidate and complete public suite after every repair.
 
 Figure~\ref{fig:builder-repair} shows the resulting versioned loop. Every replacement is
-assigned a new candidate hash; evidence gathered for $C_i$ is superseded and cannot be
-carried to $C_{i+1}$. The Runner then replays the complete public and independent suites,
-not only the previously failing check. A repaired run succeeds when the final candidate
-converges across all required validation surfaces. First-attempt perfection is neither
-required nor treated as the method's objective.
+assigned a new candidate hash, so candidate-dependent acceptance evidence gathered for
+$C_i$ cannot authorize $C_{i+1}$. Repair need not, however, restart unrelated upstream
+model work. Results such as the differential security reviews may be replayed from a
+checkpoint only when the complete role input, policy, contract, and poison-construction
+hashes are identical. The repaired candidate first receives a targeted trusted replay of
+the affected criterion. If that checkpoint passes, the Runner replays the complete public,
+Developer Conformance, and independent suites once against the final hash. Thus targeted
+replay shortens diagnosis, while full final-hash replay remains the acceptance authority.
+A repaired run succeeds when the final candidate converges across all required validation
+surfaces. First-attempt perfection is neither required nor treated as the method's objective.
 
 \begin{figure}[H]
 \centering
@@ -475,7 +480,7 @@ required nor treated as the method's objective.
 \draw[repairarrow] (pass)--node[right,font=\tiny]{yes}(evidence);
 \draw[repairarrow] (pass.south west) -- ++(0,-3mm) -| node[pos=.18,above,font=\tiny]{no} (diagnostic.north);
 \draw[repairarrow] (diagnostic)--(repair);
-\draw[repairarrow] (repair.west) -- ++(-7mm,0) |- node[pos=.23,left,font=\tiny,align=right]{new hash; invalidate\\all $C_i$ evidence} (builder.west);
+\draw[repairarrow] (repair.west) -- ++(-7mm,0) |- node[pos=.23,left,font=\tiny,align=right]{new hash; targeted check,\\then full final replay} (builder.west);
 \end{tikzpicture}
 \caption{Builder-led repair with independent acceptance. Builder chooses the replacement implementation, while trusted checks decide whether each complete candidate advances.}
 \label{fig:builder-repair}
@@ -486,6 +491,13 @@ method retains multiple partial oracles rather than claiming formal equivalence 
 complete verifier. The repair outcome also feeds the scope classification below: a defect
 may belong only to one candidate, reveal a missing capability-specific constraint, or
 expose a shared Runner or framework error.
+
+The checkpoint cache is a dependency graph rather than a cache of verdict strings. A role
+result is reusable only under exact input and policy hashes; a candidate change invalidates
+candidate-dependent tests, while a Runner or Host change invalidates provider and
+meta-conformance evidence. Any mismatch dispatches a fresh role or execution. Installation
+always requires the complete final replay, so checkpointing changes latency rather than the
+acceptance threshold.
 
 \section{Demo-First Criterion Evolution}
 
