@@ -372,6 +372,51 @@ selected by the outer orchestrator.}
 \label{fig:runner-bootstrap}
 \end{figure}
 
+\subsection{Infrastructure change governance}
+
+Runner generation is a provisioning and infrastructure-maintenance activity, not an implicit
+subroutine of every application installation. Figure~\ref{fig:infra-governance} separates three
+authorities. An MSkill developer who encounters an infrastructure failure may freeze the
+application checkpoint, construct a minimal reproducer, and propose a generic repair in isolation.
+That proposal is not trusted release evidence and cannot make the interrupted application run
+count. A distinct infrastructure maintainer reviews protocol scope, least privilege, fail-closed
+behavior, and absence of MSkill, fixture, or test-ID special cases. A fresh infrastructure Tester
+then runs complete meta-conformance, negative canaries, cleanup, immutable packaging, installation,
+and rollback before a new version is published.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  node distance=7mm,
+  gov/.style={draw,rounded corners,align=center,text width=31mm,minimum height=12mm,font=\scriptsize},
+  govflow/.style={-{Latex[length=1.7mm]},thick}
+]
+\node[gov,draw=builderblue] (dev) {MSkill developer\\reproduce + propose};
+\node[gov,right=of dev] (review) {Infrastructure maintainer\\review boundary};
+\node[gov,draw=testergreen,right=of review] (itest) {Fresh infrastructure Tester\\meta-conformance};
+\node[gov,right=of itest] (release) {Versioned published\\Runner infrastructure};
+\node[gov,below=10mm of release] (user) {Ordinary user\\normal MSkill install};
+\node[gov,below=10mm of review] (stop) {Infrastructure error\\fail closed + report};
+\draw[govflow] (dev)--(review);
+\draw[govflow] (review)--(itest);
+\draw[govflow] (itest)--(release);
+\draw[govflow] (release)--(user);
+\draw[govflow] (user)--node[above,font=\tiny]{infrastructure failure}(stop);
+\end{tikzpicture}
+\caption{Infrastructure change governance. Application developers can propose repairs, but only
+maintainer review plus fresh meta-conformance can publish a Runner version. Ordinary installation
+never patches infrastructure in the background.}
+\label{fig:infra-governance}
+\end{figure}
+
+Ordinary users consume only a published, reviewed infrastructure version. A normal installation
+may restart or retry an unchanged service, but a substantive Runner, Host, broker, or provider
+failure stops installation without consuming an application Builder attempt. The interface may
+offer an already-published update or a report path; it does not invoke a Runner Builder or silently
+activate an experimental repair. After maintainers publish and the user installs a reviewed version,
+the orchestrator may resume the exact saved checkpoint, verify the affected provider boundary, and
+then rerun the complete downstream application gates.
+
 \subsection{Security-review output}
 
 Tester returns one of three structured verdicts:
@@ -751,6 +796,11 @@ inside their own manifest-covered delivery. Each became a generic meta-conforman
 regression. The final 1.0.6 installation uses a default-deny environment, preflight plus CDP and
 intent-stage network denial, verified child/profile cleanup, exact Host projection, and atomic
 hash-addressed activation with rollback.
+
+These corrections were performed as an infrastructure-development and maintainer-review campaign,
+not as background self-modification in an ordinary user's MSkill installation. Under the resulting
+governance, an application developer may reproduce and propose such a correction, but release
+authority belongs to the infrastructure maintainer and a fresh independent meta-conformance gate.
 
 The reference deployment routes Extension traffic through port 8787, role leases through the
 protected 8788 broker, and real-browser conformance to the active generated Host on 8790. These
