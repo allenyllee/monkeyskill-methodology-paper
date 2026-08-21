@@ -332,25 +332,39 @@ positive execution, fail-closed behavior, cleanup, protocol purity, exact hashes
 projection. Trusted orchestration atomically activates only the tested hash and preserves the
 previous passing version for rollback.
 
+The authenticated Host is a separate trust boundary. It validates the complete external Build
+envelope, rejects unknown fields, and projects only the provider's documented private request
+(the browser provider receives exact \texttt{\{modes\}} bytes). Provider crashes, unsupported
+operations, malformed responses, and timeouts are infrastructure failures rather than candidate
+assertions. Meta-conformance additionally requires a default-deny child-process environment,
+preflight and runtime network denial, verified browser cleanup, canonical package hashing, and
+acceptance tools that cannot mutate the manifest-covered artifact they are validating.
+
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-  node distance=5mm and 5mm,
-  boot/.style={draw,rounded corners,align=center,text width=25mm,minimum height=10mm,font=\scriptsize},
+  node distance=6mm and 7mm,
+  boot/.style={draw,rounded corners,align=center,text width=27mm,minimum height=10mm,font=\scriptsize},
   bootflow/.style={-{Latex[length=1.7mm]},thick}
 ]
 \node[boot] (spec) {Readable Runner\\Bootstrap};
 \node[boot,draw=builderblue,right=of spec] (rb) {Fresh Runner\\Builder};
-\node[boot,draw=testergreen,right=of rb] (rt) {Fresh Runner Tester\\meta-conformance};
-\node[boot,right=of rt] (active) {Atomic activation\\tested hash + rollback};
-\node[boot,right=of active] (host) {Authenticated\\generic Host};
-\node[boot,below=10mm of host] (outer) {Invoking orchestrator\\chooses application};
+\node[boot,right=of rb] (pub) {Public checks\\profile + fail closed};
+\node[boot,draw=testergreen,right=of pub] (rt) {Fresh Runner Tester\\meta-conformance};
+\node[boot,below=12mm of rt] (active) {Immutable package\\atomic activation};
+\node[boot,left=of active] (host) {Authenticated Host\\validate + project};
+\node[boot,left=of host] (runner) {Generated Runner\\bounded protocol};
+\node[boot,left=of runner] (provider) {Isolated environment\\provider};
+\node[boot,below=9mm of host] (outer) {Outer orchestrator\\application loop};
 \draw[bootflow] (spec)--(rb);
-\draw[bootflow] (rb)--(rt);
-\draw[bootflow] (rt)--node[above,font=\tiny]{all pass}(active);
+\draw[bootflow] (rb)--(pub);
+\draw[bootflow] (pub)--(rt);
+\draw[bootflow] (rt)--node[right,font=\tiny]{all pass}(active);
 \draw[bootflow] (active)--(host);
-\draw[bootflow] (host)--(outer);
-\draw[bootflow,draw=attackred] (rt.south) -- ++(0,-6mm) -| node[pos=.25,below,font=\tiny]{bounded diagnostic} (rb.south);
+\draw[bootflow] (host)--(runner);
+\draw[bootflow] (runner)--(provider);
+\draw[bootflow] (outer)--(host);
+\draw[bootflow,draw=attackred] (rt.north) -- ++(0,5mm) -| node[pos=.28,above,font=\tiny]{bounded diagnostic} (rb.north);
 \end{tikzpicture}
 \caption{Generated Runner bootstrap and trust boundary. The Runner MSkill ends at a generic
 Host handoff; it does not name, approve, install, or special-case the application subsequently
@@ -665,6 +679,15 @@ reproduced in Appendices~\ref{app:package}--\ref{app:grammar}.
 
 The case exposed gaps that neither candidate self-tests nor independent DSL tests alone established. For example, a DOM range could exist while the selection remained visually transparent; only a post-drag screenshot established the rendered result. Likewise, paste rollback required waiting beyond the page's delayed handler and inspecting the final input value. These observations became capability-specific criteria and validated constraints, while the global process retained only behavior-agnostic lessons: preserve native platform semantics in the Runner, attach visual claims to pixels, and classify scope before changing shared prompts.
 
+A later installed candidate made the Store itself unclickable. Its overlay repair classified a
+temporarily empty application container, queued a pointer mutation, and applied it after the
+container had been populated. Restore Right Click now rechecks content, geometry, and interactivity
+immediately before mutation, restores the exact prior pointer state when content arrives, and carries
+a fixed \texttt{regression-transient-empty-container} Developer Conformance case. This is deliberately
+an application-specific time-of-check/time-of-use regression, not a global claim that every empty
+container is an overlay. The methodological lesson is only to promote a reproducible defect into the
+owning MSkill's readable criterion and fixed regression memory.
+
 Engineering validation of the reference implementation has included fresh role isolation, schema checks, public and independent Runner suites, adversarial differential gating, installation, browser interaction, visual screenshots, and repeated converged generations. These observations demonstrate feasibility, not general effectiveness. The next section defines the study needed for broader claims.
 
 \subsection{Current experimental configuration}
@@ -683,7 +706,7 @@ The operational settings used for the browser case study are:
   \item[Campaign threshold] Three consecutive fresh converged closed-loop runs are required before the capability is called stable.
   \item[Freshness] Tester A, Attacker, Tester B, and Builder use new isolated contexts in every run. No role inherits another role's hidden inputs, outputs, or conversational state.
   \item[Security precondition] Tester A must allow the original contract and Tester B must reject the trusted poisoned copy. Every other matrix outcome stops before Builder.
-  \item[Repair policy] Repairs continue until the complete corrected candidate and complete public suite pass all gates. Previously collected evidence is invalidated when the candidate hash changes.
+  \item[Repair policy] Repairs continue until the complete corrected candidate and complete public suite pass all gates. Exact dependency checkpoints may replay byte-identical upstream role results; a candidate repair first runs the affected checkpoint, then one complete final-hash replay of all gates.
   \item[Regression memory] Fixed Developer Conformance runs after the Public suite in an isolated Chromium/CDP viewport and is replayed immediately before installation. It has blocking but not authorizing authority; Builder receives only criterion/mode/category/assertion type on failure.
   \item[End-to-end evidence] Static policy, Public, Developer Conformance, and Independent checks, installation, real Demo interactions, delayed checkpoints, and required screenshots must all refer to the final hash. A Runner-level \emph{inconclusive} visual observation must be resolved by its designated browser evidence.
   \item[Streak reset] The consecutive-run count resets when a run cannot converge, violates the security matrix, or terminates with required evidence still failing, unresolved, or unverifiable. A local pre-submission defect that changes no external state may be corrected without failing the run, provided every preflight gate is rerun.
@@ -714,20 +737,34 @@ Total & 61 & 5 & 2 & 39/13/0 \quad 50/11/0 \\
 
 \subsection{Generated-Runner integration run}
 
-We also tested whether the CDP Runner could be generated locally rather than supplied as a
-prewritten component. A clean agent received only the versioned Bootstrap URL, verified the
-package hashes, generated a dependency-free Node/Edge-CDP Runner, and submitted it to a fresh
-meta-conformance Tester. The second Runner candidate passed 12/12 cases and 13/13 artifact-file
-hash checks, then was atomically activated at hash
-\texttt{784c5f01e030e3a8bbb86a08b40c64b98fa8e27cca05c7ddf42be66962148598}.
+We tested whether the CDP Runner could be generated locally rather than supplied as a prewritten
+component. A clean agent received only a versioned readable Bootstrap URL, verified its package,
+generated a dependency-free Node/Edge-CDP Runner and authenticated Host, and handed the immutable
+artifact to a fresh meta-conformance Tester. No prewritten Runner source was part of the Bootstrap.
 
-The first application cycle exposed a generic Host defect: provider failures used only the
-generic assertion-failure code, which the bounded Builder-diagnostic allowlist correctly discarded,
-yielding an empty repair tuple. After adding a meta-conformance case for non-empty constrained
-projection, the next fresh application cycle delivered only criterion/mode/category/assertion
-types to Builder and converged without revealing fixtures or expected values. Table~\ref{tab:generated-runner}
-records the final Store approval and installation on 2026-08-19. The eight attempts measure
-candidate repair under the generated Runner; they are not Runner rebuild attempts.
+The iterations exposed infrastructure defects that application generation alone could not safely
+repair: a hidden zero-sized viewport; a Host that forwarded the full external Build although the
+Runner accepted only \texttt{\{modes\}}; empty diagnostic projection; missing public DSL literals;
+the Windows launcher exiting before the real CDP child was ready; environment-secret inheritance;
+network attempts suppressed by CSP before request interception; and acceptance scripts that wrote
+inside their own manifest-covered delivery. Each became a generic meta-conformance or packaging
+regression. The final 1.0.6 installation uses a default-deny environment, preflight plus CDP and
+intent-stage network denial, verified child/profile cleanup, exact Host projection, and atomic
+hash-addressed activation with rollback.
+
+The reference deployment routes Extension traffic through port 8787, role leases through the
+protected 8788 broker, and real-browser conformance to the active generated Host on 8790. These
+ports are deployment details; the portable boundary is authenticated external-envelope validation,
+minimal provider projection, and a constrained result. The final independently recomputed hashes
+were Runner \texttt{6523640f2e198add...e50d04c}, Host
+\texttt{bf5a8834df541e5a...edc66534}, and package tree
+\texttt{e86b1b802714c352...946ff17a}.
+
+Table~\ref{tab:generated-runner} records a fresh application run after activating this generated
+Runner. Exact request hashes replayed byte-identical upstream security checkpoints. One mismatched
+Tester-B input failed closed and was regenerated; the repaired Builder candidate first passed the
+affected two-case checkpoint and then the complete unchanged eight-case Developer Conformance.
+All final gates still ran against the final candidate hash.
 
 \begin{table}[H]
 \centering
@@ -738,12 +775,12 @@ candidate repair under the generated Runner; they are not Runner rebuild attempt
 \toprule
 Evidence source & Pass & Inconclusive & Fail & Notes \\
 \midrule
-Public TestSpec & 24 & 5 & 0 & Builder-authored; 29 total \\
-Developer Conformance & 7 & 0 & 0 & generated Edge/CDP Runner \\
-Independent TestSpec & 32 & 4 & 0 & Tester-authored; 36 total \\
+Public TestSpec & 26 & 9 & 0 & Builder-authored; 35 total \\
+Developer Conformance & 8 & 0 & 0 & generated Edge/CDP Runner \\
+Independent TestSpec & 24 & 5 & 0 & Tester-authored; 29 total \\
 Differential security & 1 & 0 & 0 & original allow / poisoned reject \\
 \midrule
-Builder attempts & \multicolumn{4}{l}{8; final candidate hash \texttt{c1aebddd93e678e0}; installed} \\
+Builder attempts & \multicolumn{4}{l}{1 replayed repaired candidate; hash prefix \texttt{98516731a293ecfd}; installed} \\
 \bottomrule
 \end{tabular}
 \end{table}
