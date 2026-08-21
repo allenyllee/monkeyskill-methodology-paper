@@ -25,6 +25,9 @@ then shows approval, pre-install replay, installation, and final published-Demo 
 It also includes a separate generated-Runner bootstrap diagram: a readable, versioned
 Bootstrap drives fresh Runner Builder/Tester roles, exact-hash atomic activation, and a generic
 Host handoff, while the outer orchestrator remains responsible for application-specific acceptance.
+The same figure includes the POC verified-copy boundary: the Store provides only a package
+descriptor, the Extension independently re-downloads and pins the exact package and protocol, and
+only Extension code constructs the prompt copied to the local agent.
 The reference case study records the current three-run convergence threshold, repair
 accounting, final-evidence requirements, and observed attempt counts. It also reports a
 fresh real-browser run whose original/poisoned verdicts were allow/reject, whose fixed

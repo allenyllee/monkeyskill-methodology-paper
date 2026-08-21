@@ -332,6 +332,17 @@ positive execution, fail-closed behavior, cleanup, protocol purity, exact hashes
 projection. Trusted orchestration atomically activates only the tested hash and preserves the
 previous passing version for rollback.
 
+The Bootstrap acquisition path also treats the Store page as untrusted. Its visible
+``Copy verified Bootstrap prompt'' control supplies only an ID, version, same-origin immutable
+URL, and claimed package hash to an isolated Extension bridge. The bridge independently downloads
+the manifest and every listed file with credentials omitted and redirects disabled, verifies byte
+counts and SHA-256 values, recomputes the package hash, and reports the observed protocol. The
+published Extension accepts only the exact Bootstrap version, package hash, and protocol pinned in
+its compiled policy; Extension code then constructs and copies the prompt while returning only
+success metadata to the page. For the present proof of concept this exact pin is the trust anchor,
+without a signature infrastructure. The receiving local agent nevertheless re-downloads and
+re-verifies the named package before fresh Builder/Tester meta-conformance.
+
 The authenticated Host is a separate trust boundary. It validates the complete external Build
 envelope, rejects unknown fields, and projects only the provider's documented private request
 (the browser provider receives exact \texttt{\{modes\}} bytes). Provider crashes, unsupported
@@ -348,6 +359,9 @@ acceptance tools that cannot mutate the manifest-covered artifact they are valid
   bootflow/.style={-{Latex[length=1.7mm]},thick}
 ]
 \node[boot] (spec) {Readable Runner\\Bootstrap};
+\node[boot,above=6mm of spec] (policy) {Extension pin\\construct prompt};
+\node[boot,above=6mm of policy] (bridge) {Isolated bridge\\fetch + hash + protocol};
+\node[boot,above=6mm of bridge] (store) {Untrusted Store\\descriptor only};
 \node[boot,draw=builderblue,right=of spec] (rb) {Fresh Runner\\Builder};
 \node[boot,right=of rb] (pub) {Public checks\\profile + fail closed};
 \node[boot,draw=testergreen,right=of pub] (rt) {Fresh Runner Tester\\meta-conformance};
@@ -356,6 +370,9 @@ acceptance tools that cannot mutate the manifest-covered artifact they are valid
 \node[boot,left=of host] (runner) {Generated Runner\\bounded protocol};
 \node[boot,left=of runner] (provider) {Isolated environment\\provider};
 \node[boot,below=9mm of host] (outer) {Outer orchestrator\\application loop};
+\draw[bootflow] (store)--(bridge);
+\draw[bootflow] (bridge)--(policy);
+\draw[bootflow] (policy)--node[right,font=\tiny]{verified copy}(spec);
 \draw[bootflow] (spec)--(rb);
 \draw[bootflow] (rb)--(pub);
 \draw[bootflow] (pub)--(rt);
@@ -366,9 +383,10 @@ acceptance tools that cannot mutate the manifest-covered artifact they are valid
 \draw[bootflow] (outer)--(host);
 \draw[bootflow,draw=attackred] (rt.north) -- ++(0,5mm) -| node[pos=.28,above,font=\tiny]{bounded diagnostic} (rb.north);
 \end{tikzpicture}
-\caption{Generated Runner bootstrap and trust boundary. The Runner MSkill ends at a generic
-Host handoff; it does not name, approve, install, or special-case the application subsequently
-selected by the outer orchestrator.}
+\caption{Verified acquisition, generated Runner bootstrap, and trust boundary. The untrusted Store
+provides only a descriptor; the Extension verifies pinned bytes and protocol before constructing the
+prompt. The Runner MSkill ends at a generic Host handoff and does not name, approve, install, or
+special-case the application subsequently selected by the outer orchestrator.}
 \label{fig:runner-bootstrap}
 \end{figure}
 
